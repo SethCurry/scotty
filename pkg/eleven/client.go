@@ -10,6 +10,12 @@ import (
 
 // Reference: https://elevenlabs.io/docs/api-reference/getting-started
 
+func NewClient(apiKey string) *Client {
+	return &Client{
+		apiKey: apiKey,
+	}
+}
+
 type Client struct {
 	apiKey string
 }

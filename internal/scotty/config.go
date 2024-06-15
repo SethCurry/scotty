@@ -25,7 +25,10 @@ type DatabaseConfig struct {
 }
 
 type TTSConfig struct {
-	APIKey string `yaml:"api_key"`
+	APIKey        string `yaml:"api_key"`
+	ScottyVoiceID string `yaml:"scotty_voice_id"`
+	OutputDir     string `yaml:"output_dir"`
+	OutputURL     string `yaml:"output_url"`
 }
 
 // Config stores configuration options for Scotty.  These are

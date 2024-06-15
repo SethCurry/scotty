@@ -36,3 +36,11 @@ type Bot struct {
 	logger   *zap.Logger
 	commands map[string]Command
 }
+
+func (b *Bot) RegisterCommand(name string, command Command) {
+	if b.commands == nil {
+		b.commands = make(map[string]Command)
+	}
+
+	b.commands[name] = command
+}

@@ -1,11 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/SethCurry/scotty/internal/ent"
 	"github.com/SethCurry/scotty/internal/scotty"
+	"github.com/SethCurry/scotty/pkg/eleven"
 	"github.com/alecthomas/kong"
+	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
 )
 
@@ -20,6 +25,50 @@ type DBCommands struct {
 }
 
 type StartCommand struct{}
+
+func (s StartCommand) Run(ctx *Context) error {
+	bot, err := scotty.NewBot(ctx.Config.Discord.Token, ctx.DB, ctx.Logger)
+	if err != nil {
+		return err
+	}
+
+	elClient := eleven.NewClient(ctx.Config.TTS.APIKey)
+
+	bot.RegisterCommand("scotty", func(sess *discordgo.Session, db *ent.Client, inter *discordgo.InteractionCreate, logger *zap.Logger) {
+		buf := bytes.NewBuffer([]byte{})
+
+		now := time.Now().Unix()
+
+		err := elClient.TTS("", ctx.Config.TTS.ScottyVoiceID, buf, eleven.VoiceSettings{
+			Stability:       60,
+			SimilarityBoost: 85,
+			UseSpeakerBoost: true,
+		})
+		if err != nil {
+			logger.Error("failed to create sample", zap.Error(err))
+		}
+
+		err = sess.InteractionRespond(inter.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "It's not safe to go alone, take this",
+				Files: []*discordgo.File{
+					{
+						Name:   fmt.Sprintf("scotty-%d.mp3", now),
+						Reader: buf,
+					},
+				},
+			},
+		})
+		if err != nil {
+			logger.Error("failed to respond", zap.Error(err))
+		}
+	})
+
+	<-ctx.Context.Done()
+
+	return nil
+}
 
 type CLI struct {
 	DB    DBCommands   `cmd:"db" help:"Interact with Scotty's database"`
