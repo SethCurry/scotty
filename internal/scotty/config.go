@@ -24,11 +24,16 @@ type DatabaseConfig struct {
 	DSN    string `yaml:"dsn"`
 }
 
+type TTSConfig struct {
+	APIKey string `yaml:"api_key"`
+}
+
 // Config stores configuration options for Scotty.  These are
 // typically read from a configuration file.
 type Config struct {
 	Discord  DiscordConfig  `yaml:"discord"`
 	Database DatabaseConfig `yaml:"database"`
+	TTS      TTSConfig      `yaml:"tts"`
 }
 
 // LoadConfig reads the file at the specified path and unmarshals it
