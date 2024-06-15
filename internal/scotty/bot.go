@@ -23,16 +23,25 @@ func NewBot(token string, db *ent.Client, logger *zap.Logger) (*Bot, error) {
 		return nil, fmt.Errorf("failed to create Discord session: %w", err)
 	}
 
-	return &Bot{
-		db:      db,
-		session: sess,
-		logger:  logger,
-	}, nil
+	b := &Bot{
+		db:       db,
+		Session:  sess,
+		logger:   logger,
+		commands: make(map[string]Command),
+	}
+
+	b.Session.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		if h, ok := b.commands[i.ApplicationCommandData().Name]; ok {
+			h(s, db, i, logger)
+		}
+	})
+
+	return b, nil
 }
 
 type Bot struct {
 	db       *ent.Client
-	session  *discordgo.Session
+	Session  *discordgo.Session
 	logger   *zap.Logger
 	commands map[string]Command
 }

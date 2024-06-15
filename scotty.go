@@ -24,6 +24,39 @@ type DBCommands struct {
 	Migrate MigrateDBCommand `cmd:"migrate" help:"Migrate the database"`
 }
 
+type RegisterCommandsCommand struct{}
+
+func (r RegisterCommandsCommand) Run(ctx *Context) error {
+	cmds := []*discordgo.ApplicationCommand{
+		{
+			Name:        "scotty",
+			Description: "Generate an audio message in Scotty's voice.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "text",
+					Description: "The text to be spoken by Scotty.",
+					Required:    true,
+				},
+			},
+		},
+	}
+
+	bot, err := scotty.NewBot(ctx.Config.Discord.Token, ctx.DB, ctx.Logger)
+	if err != nil {
+		return err
+	}
+
+	for _, v := range cmds {
+		_, err = bot.Session.ApplicationCommandCreate(ctx.Config.Discord.AppID, ctx.Config.Discord.GuildID, v)
+		if err != nil {
+			return fmt.Errorf("failed to register command: %w", err)
+		}
+	}
+
+	return nil
+}
+
 type StartCommand struct{}
 
 func (s StartCommand) Run(ctx *Context) error {
@@ -71,8 +104,9 @@ func (s StartCommand) Run(ctx *Context) error {
 }
 
 type CLI struct {
-	DB    DBCommands   `cmd:"db" help:"Interact with Scotty's database"`
-	Start StartCommand `cmd:"start" help:"Start the bot"`
+	DB               DBCommands              `cmd:"db" help:"Interact with Scotty's database"`
+	Start            StartCommand            `cmd:"start" help:"Start the bot"`
+	RegisterCommands RegisterCommandsCommand `cmd:"register-commands" help:"Register Discord commands for the bot"`
 }
 
 type Context struct {
