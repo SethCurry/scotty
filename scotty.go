@@ -82,7 +82,7 @@ func (s StartCommand) Run(ctx *Context) error {
 
 	elClient := eleven.NewClient(ctx.Config.TTS.APIKey)
 
-	bot.RegisterCommand("scotty", func(sess *discordgo.Session, db *ent.Client, inter *discordgo.InteractionCreate, logger *zap.Logger) {
+	bot.RegisterCommand("scotty", func(sess *discordgo.Session, db *ent.Client, inter *discordgo.InteractionCreate, logger *zap.Logger) (*discordgo.InteractionResponse, error) {
 		buf := bytes.NewBuffer([]byte{})
 
 		now := time.Now().Unix()
@@ -94,9 +94,10 @@ func (s StartCommand) Run(ctx *Context) error {
 		})
 		if err != nil {
 			logger.Error("failed to create sample", zap.Error(err))
+			return nil, err
 		}
 
-		err = sess.InteractionRespond(inter.Interaction, &discordgo.InteractionResponse{
+		return &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: "It's not safe to go alone, take this",
@@ -107,37 +108,22 @@ func (s StartCommand) Run(ctx *Context) error {
 					},
 				},
 			},
-		})
-		if err != nil {
-			logger.Error("failed to respond", zap.Error(err))
-		}
+		}, nil
 	})
 
-	bot.RegisterCommand("leaderboard", func(sess *discordgo.Session, db *ent.Client, inter *discordgo.InteractionCreate, logger *zap.Logger) {
+	bot.RegisterCommand("leaderboard", func(sess *discordgo.Session, db *ent.Client, inter *discordgo.InteractionCreate, logger *zap.Logger) (*discordgo.InteractionResponse, error) {
 		username := inter.ApplicationCommandData().Options[0].StringValue()
 		player, err := finals.CheckLeaderboard(username)
 		if err != nil {
-			respErr := sess.InteractionRespond(inter.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: err.Error(),
-				},
-			})
-			if respErr != nil {
-				logger.Error("failed to respond", zap.Error(respErr))
-				return
-			}
+			return nil, err
 		}
 
-		err = sess.InteractionRespond(inter.Interaction, &discordgo.InteractionResponse{
+		return &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: fmt.Sprintf("%s: #%d, %s", player.Name, player.Rank, player.League),
 			},
-		})
-		if err != nil {
-			logger.Error("failed to respond", zap.Error(err))
-		}
+		}, nil
 	})
 
 	<-ctx.Context.Done()

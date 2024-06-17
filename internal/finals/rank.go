@@ -3,26 +3,9 @@ package finals
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 )
-
-type League string
-
-const (
-	Bronze   League = "Bronze"
-	Silver   League = "Silver"
-	Gold     League = "Gold"
-	Platinum League = "Platinum"
-	Diamond  League = "Diamond"
-	Ruby     League = "Ruby"
-)
-
-type Rank struct {
-	Bracket int    `json:"bracket"`
-	League  League `json:"league"`
-}
 
 type LeaderboardResponse struct {
 	Data []LeaderboardPlayer `json:"data"`
@@ -45,8 +28,6 @@ func CheckLeaderboard(name string) (*LeaderboardPlayer, error) {
 	q := u.Query()
 	q.Set("name", name)
 	u.RawQuery = q.Encode()
-
-	fmt.Println(u.String())
 
 	resp, err := http.Get(u.String())
 	if err != nil {

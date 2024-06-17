@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type Command func(*discordgo.Session, *ent.Client, *discordgo.InteractionCreate, *zap.Logger)
+type Command func(*discordgo.Session, *ent.Client, *discordgo.InteractionCreate, *zap.Logger) (*discordgo.InteractionResponse, error)
 
 func NewBot(token string, db *ent.Client, logger *zap.Logger) (*Bot, error) {
 	sess, err := discordgo.New("Bot " + token)
@@ -32,7 +32,23 @@ func NewBot(token string, db *ent.Client, logger *zap.Logger) (*Bot, error) {
 
 	b.Session.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if h, ok := b.commands[i.ApplicationCommandData().Name]; ok {
-			h(s, db, i, logger)
+			var respErr error
+
+			resp, err := h(s, db, i, logger)
+			if err != nil {
+				respErr = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "Error: " + err.Error(),
+					},
+				})
+			} else {
+				respErr = s.InteractionRespond(i.Interaction, resp)
+			}
+
+			if respErr != nil {
+				logger.Error("failed to send interaction response", zap.Error(err))
+			}
 		}
 	})
 
