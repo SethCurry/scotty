@@ -7,10 +7,13 @@ import (
 	"time"
 
 	"github.com/SethCurry/scotty/internal/ent"
+	"github.com/SethCurry/scotty/internal/finals"
 	"github.com/SethCurry/scotty/internal/scotty"
 	"github.com/SethCurry/scotty/pkg/eleven"
 	"github.com/alecthomas/kong"
 	"github.com/bwmarrin/discordgo"
+	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
 )
 
@@ -36,6 +39,18 @@ func (r RegisterCommandsCommand) Run(ctx *Context) error {
 					Type:        discordgo.ApplicationCommandOptionString,
 					Name:        "text",
 					Description: "The text to be spoken by Scotty.",
+					Required:    true,
+				},
+			},
+		},
+		{
+			Name:        "leaderboard",
+			Description: "Check a player's leaderboard position.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "player",
+					Description: "The player to check the leaderboard for.",
 					Required:    true,
 				},
 			},
@@ -72,9 +87,9 @@ func (s StartCommand) Run(ctx *Context) error {
 
 		now := time.Now().Unix()
 
-		err := elClient.TTS("", ctx.Config.TTS.ScottyVoiceID, buf, eleven.VoiceSettings{
-			Stability:       60,
-			SimilarityBoost: 85,
+		err := elClient.TTS(inter.ApplicationCommandData().Options[0].StringValue(), ctx.Config.TTS.ScottyVoiceID, buf, eleven.VoiceSettings{
+			Stability:       0.8,
+			SimilarityBoost: 0.6,
 			UseSpeakerBoost: true,
 		})
 		if err != nil {
@@ -91,6 +106,33 @@ func (s StartCommand) Run(ctx *Context) error {
 						Reader: buf,
 					},
 				},
+			},
+		})
+		if err != nil {
+			logger.Error("failed to respond", zap.Error(err))
+		}
+	})
+
+	bot.RegisterCommand("leaderboard", func(sess *discordgo.Session, db *ent.Client, inter *discordgo.InteractionCreate, logger *zap.Logger) {
+		username := inter.ApplicationCommandData().Options[0].StringValue()
+		player, err := finals.CheckLeaderboard(username)
+		if err != nil {
+			respErr := sess.InteractionRespond(inter.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: err.Error(),
+				},
+			})
+			if respErr != nil {
+				logger.Error("failed to respond", zap.Error(respErr))
+				return
+			}
+		}
+
+		err = sess.InteractionRespond(inter.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: fmt.Sprintf("%s: #%d, %s", player.Name, player.Rank, player.League),
 			},
 		})
 		if err != nil {

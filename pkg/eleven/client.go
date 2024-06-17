@@ -88,10 +88,10 @@ func (c *Client) ListVoices() (*ListVoicesResponse, error) {
 }
 
 type VoiceSettings struct {
-	Stability       int  `json:"stability"`
-	SimilarityBoost int  `json:"similarity_boost"`
-	Style           int  `json:"style"`
-	UseSpeakerBoost bool `json:"use_speaker_boost"`
+	Stability       float32 `json:"stability"`
+	SimilarityBoost float32 `json:"similarity_boost"`
+	Style           int     `json:"style"`
+	UseSpeakerBoost bool    `json:"use_speaker_boost"`
 }
 
 type TTSOptions struct {
@@ -100,12 +100,14 @@ type TTSOptions struct {
 
 type TTSRequest struct {
 	Text          string        `json:"text"`
+	ModelID       string        `json:"model_id"`
 	VoiceSettings VoiceSettings `json:"voice_settings"`
 }
 
 func (c *Client) TTS(text string, voiceID string, output io.Writer, settings VoiceSettings) error {
 	reqBody := &TTSRequest{
 		Text:          text,
+		ModelID:       "eleven_multilingual_v2",
 		VoiceSettings: VoiceSettings{},
 	}
 
@@ -118,8 +120,13 @@ func (c *Client) TTS(text string, voiceID string, output io.Writer, settings Voi
 	if err != nil {
 		return err
 	}
-
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+
+		return fmt.Errorf("invalid status code: %d: %s", resp.StatusCode, string(body))
+	}
 
 	_, err = io.Copy(output, resp.Body)
 	if err != nil {
