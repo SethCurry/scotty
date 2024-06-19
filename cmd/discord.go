@@ -7,9 +7,14 @@ import (
 	"go.uber.org/zap"
 )
 
-type RegisterCommandsCommand struct{}
+type Discord struct {
+	RegisterCommands RegisterCommands `cmd:"register-commands" help:"Register slash commands with Discord"`
+	Start            StartBot         `cmd:"start" help:"Start the scotty bot"`
+}
 
-func (r RegisterCommandsCommand) Run(ctx *Context) error {
+type RegisterCommands struct{}
+
+func (r RegisterCommands) Run(ctx *Context) error {
 	cmds := []*discordgo.ApplicationCommand{
 		{
 			Name:        "scotty",
@@ -54,9 +59,9 @@ func (r RegisterCommandsCommand) Run(ctx *Context) error {
 	return nil
 }
 
-type StartCommand struct{}
+type StartBot struct{}
 
-func (s StartCommand) Run(ctx *Context) error {
+func (s StartBot) Run(ctx *Context) error {
 	bot, err := scotty.NewBot(ctx.Config.Discord.Token, ctx.DB, ctx.Logger)
 	if err != nil {
 		return err

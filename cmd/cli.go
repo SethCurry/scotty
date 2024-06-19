@@ -16,7 +16,6 @@ type Context struct {
 }
 
 type CLI struct {
-	DB               DBCommands              `cmd:"db" help:"Interact with Scotty's database"`
-	Start            StartCommand            `cmd:"start" help:"Start the bot"`
-	RegisterCommands RegisterCommandsCommand `cmd:"register-commands" help:"Register Discord commands for the bot"`
+	DB      DBCommands `cmd:"db" help:"Interact with Scotty's database"`
+	Discord Discord    `cmd:"discord" help:"Interact with the Scotty Discord bot"`
 }
