@@ -12,6 +12,9 @@ import (
 	"go.uber.org/zap"
 )
 
+// LeaderboardCommand implements the /leaderboard Discord slash command.
+// It allows players to look up another player's leaderboard position and rank
+// using their Embark ID.
 func LeaderboardCommand(sess *discordgo.Session, db *ent.Client, inter *discordgo.InteractionCreate, logger *zap.Logger) (*discordgo.InteractionResponse, error) {
 	username := inter.ApplicationCommandData().Options[0].StringValue()
 	player, err := finals.Leaderboard(username)
@@ -27,6 +30,8 @@ func LeaderboardCommand(sess *discordgo.Session, db *ent.Client, inter *discordg
 	}, nil
 }
 
+// ScottyCommand implements the /scotty Discord slash command. It allows players to
+// create soundboard clips using the Eleven Labs API.
 func ScottyCommand(elClient *eleven.Client, scottyVoiceID string) func(sess *discordgo.Session, db *ent.Client, inter *discordgo.InteractionCreate, logger *zap.Logger) (*discordgo.InteractionResponse, error) {
 	return func(sess *discordgo.Session, db *ent.Client, inter *discordgo.InteractionCreate, logger *zap.Logger) (*discordgo.InteractionResponse, error) {
 		buf := bytes.NewBuffer([]byte{})

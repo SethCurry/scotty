@@ -8,8 +8,11 @@ import (
 	"go.uber.org/zap"
 )
 
+// Command defines the function signature that Discord slash commands should
+// implement.
 type Command func(*discordgo.Session, *ent.Client, *discordgo.InteractionCreate, *zap.Logger) (*discordgo.InteractionResponse, error)
 
+// NewBot creates a new instance of a *Bot and starts the underlying Discord session.
 func NewBot(token string, db *ent.Client, logger *zap.Logger) (*Bot, error) {
 	sess, err := discordgo.New("Bot " + token)
 	if err != nil {
@@ -55,6 +58,8 @@ func NewBot(token string, db *ent.Client, logger *zap.Logger) (*Bot, error) {
 	return b, nil
 }
 
+// Bot is a struct that implements interactions with Discord such as
+// slash commands.
 type Bot struct {
 	db       *ent.Client
 	Session  *discordgo.Session
@@ -62,6 +67,9 @@ type Bot struct {
 	commands map[string]Command
 }
 
+// RegisterCommand registers a new slash command handler with the bot.
+// This does not register it with Discord, it only ensures the bot is
+// ready to handle that slash command.
 func (b *Bot) RegisterCommand(name string, command Command) {
 	if b.commands == nil {
 		b.commands = make(map[string]Command)

@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/SethCurry/scotty/internal/scotty"
 	"github.com/SethCurry/scotty/pkg/eleven"
 	"github.com/bwmarrin/discordgo"
@@ -44,7 +46,7 @@ func (r RegisterCommands) Run(ctx *Context) error {
 
 	bot, err := scotty.NewBot(ctx.Config.Discord.Token, ctx.DB, ctx.Logger)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create discord bot: %w", err)
 	}
 
 	for _, v := range cmds {
@@ -59,18 +61,23 @@ func (r RegisterCommands) Run(ctx *Context) error {
 	return nil
 }
 
+// StartBot implements a command to start the Discord bot.
 type StartBot struct{}
 
 func (s StartBot) Run(ctx *Context) error {
 	bot, err := scotty.NewBot(ctx.Config.Discord.Token, ctx.DB, ctx.Logger)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create a bot: %w", err)
 	}
+
+	ctx.Logger.Info("started Discord bot connection")
 
 	elClient := eleven.NewClient(ctx.Config.TTS.APIKey)
 
 	bot.RegisterCommand("scotty", scotty.ScottyCommand(elClient, ctx.Config.TTS.ScottyVoiceID))
 	bot.RegisterCommand("leaderboard", scotty.LeaderboardCommand)
+
+	ctx.Logger.Info("waiting for context to be cancelled")
 
 	// wait until the context is done, it typically blocks forever
 	<-ctx.Context.Done()
