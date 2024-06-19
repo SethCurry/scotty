@@ -7,17 +7,21 @@ import (
 	"net/url"
 )
 
+// LeaderboardResponse is the response from a leaderboard request to
+// The Finals API.
 type LeaderboardResponse struct {
 	Data []LeaderboardPlayer `json:"data"`
 }
 
+// LeaderboardPlayer is a single player in the leaderboard.
 type LeaderboardPlayer struct {
 	Name   string `json:"name"`
 	Rank   int    `json:"rank"`
 	League string `json:"league"`
 }
 
-func CheckLeaderboard(name string) (*LeaderboardPlayer, error) {
+// Leaderboard queries The Finals API for leaderboard results.
+func Leaderboard(name string) (*LeaderboardPlayer, error) {
 	// https://api.the-finals-leaderboard.com/v1/leaderboard/s3/crossplay?name=anarchy
 
 	u, err := url.Parse("https://api.the-finals-leaderboard.com/v1/leaderboard/s3/crossplay")

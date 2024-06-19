@@ -10,20 +10,44 @@ import (
 
 // Reference: https://elevenlabs.io/docs/api-reference/getting-started
 
-func NewClient(apiKey string) *Client {
-	return &Client{
-		apiKey: apiKey,
+// ClientOption is a function that configures a Client instance.
+type ClientOption func(*Client)
+
+// WithHTTPClient configures the HTTP client used by the Client instance.
+func WithHTTPClient(httpClient *http.Client) ClientOption {
+	return func(c *Client) {
+		c.httpClient = httpClient
 	}
 }
 
-type Client struct {
-	apiKey string
+// NewClient creates a new *Client instance.
+func NewClient(apiKey string, opts ...ClientOption) *Client {
+	client := &Client{
+		apiKey:     apiKey,
+		httpClient: http.DefaultClient,
+	}
+
+	for _, v := range opts {
+		v(client)
+	}
+
+	return client
 }
 
+// Client is a client for the Eleven API.  It stores
+// common configuration options like the API key to use
+// and the HTTP client to use for requests.
+type Client struct {
+	apiKey     string
+	httpClient *http.Client
+}
+
+// ListVoicesResponse stores the response from a call to ListVoices.
 type ListVoicesResponse struct {
 	Voices []VoicesListItem `json:"voices"`
 }
 
+// VoicesListItem is a single voice from the ListVoices call.
 type VoicesListItem struct {
 	Name        string `json:"name"`
 	VoiceID     string `json:"voice_id"`
@@ -32,6 +56,9 @@ type VoicesListItem struct {
 	PreviewURL  string `json:"preview_url"`
 }
 
+// makeRequest creates a new HTTP request and sets the Authorization, Content-Type
+// and Accept headers for the request.  This provides a stable source of pre-configured
+// HTTP requests.
 func (c *Client) makeRequest(method string, url string, body io.Reader) (*http.Request, error) {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
@@ -45,6 +72,8 @@ func (c *Client) makeRequest(method string, url string, body io.Reader) (*http.R
 	return req, nil
 }
 
+// makeJSONRequest does the same as makeRequest, but encodes a provided struct as JSON
+// to use in the request's body.
 func (c *Client) makeJSONRequest(method string, url string, body interface{}) (*http.Request, error) {
 	reqBody := new(bytes.Buffer)
 	err := json.NewEncoder(reqBody).Encode(body)
@@ -56,9 +85,11 @@ func (c *Client) makeJSONRequest(method string, url string, body interface{}) (*
 }
 
 func (c *Client) doRequest(req *http.Request) (*http.Response, error) {
-	return http.DefaultClient.Do(req)
+	return c.httpClient.Do(req)
 }
 
+// withJSONResponse makes a request to the provided URL and decodes its response body as JSON into
+// the provided output interface{}.
 func (c *Client) withJSONResponse(req *http.Request, output interface{}) error {
 	resp, err := c.doRequest(req)
 	if err != nil {
@@ -71,6 +102,7 @@ func (c *Client) withJSONResponse(req *http.Request, output interface{}) error {
 	return err
 }
 
+// ListVoices calls the Eleven API to get a list of voices for the current account.
 func (c *Client) ListVoices() (*ListVoicesResponse, error) {
 	req, err := c.makeRequest("GET", "https://api.elevenlabs.com/v1/voices", nil)
 	if err != nil {
@@ -104,6 +136,10 @@ type TTSRequest struct {
 	VoiceSettings VoiceSettings `json:"voice_settings"`
 }
 
+// TTS calls the Eleven API to synthesize speech for a given text and voice ID.
+// The output will be written to the provided io.Writer.
+//
+// This call is synchronous, and can potentially take a long time to complete.
 func (c *Client) TTS(text string, voiceID string, output io.Writer, settings VoiceSettings) error {
 	reqBody := &TTSRequest{
 		Text:          text,
