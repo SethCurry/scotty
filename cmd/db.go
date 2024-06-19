@@ -1,11 +1,11 @@
 package cmd
 
-type DBCommands struct {
-	Migrate MigrateDBCommand `cmd:"migrate" help:"Migrate the database"`
+type DB struct {
+	Migrate MigrateDB `cmd:"migrate" help:"Migrate the database"`
 }
 
-type MigrateDBCommand struct{}
+type MigrateDB struct{}
 
-func (m MigrateDBCommand) Run(ctx *Context) error {
+func (m MigrateDB) Run(ctx *Context) error {
 	return ctx.DB.Schema.Create(ctx.Context)
 }
