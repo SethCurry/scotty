@@ -13,9 +13,9 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("discord_id"),
-		field.Int8("rank"),
-		field.String("finals_id"),
+		field.String("discord_id").Unique(),
+		field.Int("ranked_score").Default(0),
+		field.String("finals_id").Optional().Unique(),
 	}
 }
 

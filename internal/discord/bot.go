@@ -1,4 +1,4 @@
-package scotty
+package discord
 
 import (
 	"fmt"
@@ -27,10 +27,11 @@ func NewBot(token string, db *ent.Client, logger *zap.Logger) (*Bot, error) {
 	}
 
 	b := &Bot{
-		db:       db,
-		Session:  sess,
-		logger:   logger,
-		commands: make(map[string]Command),
+		db:               db,
+		Session:          sess,
+		logger:           logger,
+		commands:         make(map[string]Command),
+		userJoinHandlers: []func(*discordgo.Session, *discordgo.GuildMemberAdd, *ent.Client, *zap.Logger){},
 	}
 
 	b.Session.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -55,16 +56,23 @@ func NewBot(token string, db *ent.Client, logger *zap.Logger) (*Bot, error) {
 		}
 	})
 
+	b.Session.AddHandler(func(s *discordgo.Session, member *discordgo.GuildMemberAdd) {
+		for _, v := range b.userJoinHandlers {
+			v(s, member, db, b.logger)
+		}
+	})
+
 	return b, nil
 }
 
 // Bot is a struct that implements interactions with Discord such as
 // slash commands.
 type Bot struct {
-	db       *ent.Client
-	Session  *discordgo.Session
-	logger   *zap.Logger
-	commands map[string]Command
+	db               *ent.Client
+	Session          *discordgo.Session
+	logger           *zap.Logger
+	commands         map[string]Command
+	userJoinHandlers []func(*discordgo.Session, *discordgo.GuildMemberAdd, *ent.Client, *zap.Logger)
 }
 
 // RegisterCommand registers a new slash command handler with the bot.

@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/SethCurry/scotty/internal/scotty"
+	"github.com/SethCurry/scotty/internal/discord"
 	"github.com/SethCurry/scotty/pkg/eleven"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
@@ -44,7 +44,7 @@ func (r RegisterCommands) Run(ctx *Context) error {
 		},
 	}
 
-	bot, err := scotty.NewBot(ctx.Config.Discord.Token, ctx.DB, ctx.Logger)
+	bot, err := discord.NewBot(ctx.Config.Discord.Token, ctx.DB, ctx.Logger)
 	if err != nil {
 		return fmt.Errorf("failed to create discord bot: %w", err)
 	}
@@ -65,7 +65,7 @@ func (r RegisterCommands) Run(ctx *Context) error {
 type StartBot struct{}
 
 func (s StartBot) Run(ctx *Context) error {
-	bot, err := scotty.NewBot(ctx.Config.Discord.Token, ctx.DB, ctx.Logger)
+	bot, err := discord.NewBot(ctx.Config.Discord.Token, ctx.DB, ctx.Logger)
 	if err != nil {
 		return fmt.Errorf("failed to create a bot: %w", err)
 	}
@@ -74,8 +74,8 @@ func (s StartBot) Run(ctx *Context) error {
 
 	elClient := eleven.NewClient(ctx.Config.TTS.APIKey)
 
-	bot.RegisterCommand("scotty", scotty.ScottyCommand(elClient, ctx.Config.TTS.ScottyVoiceID))
-	bot.RegisterCommand("leaderboard", scotty.LeaderboardCommand)
+	bot.RegisterCommand("scotty", discord.ScottyCommand(elClient, ctx.Config.TTS.ScottyVoiceID))
+	bot.RegisterCommand("leaderboard", discord.LeaderboardCommand)
 
 	ctx.Logger.Info("waiting for context to be cancelled")
 
