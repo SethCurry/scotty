@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/SethCurry/scotty/internal/ent"
+	"github.com/SethCurry/scotty/internal/ent/autorolerule"
+	"github.com/SethCurry/scotty/internal/ent/guild"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
 )
@@ -16,7 +18,7 @@ func AutoRoleOnUserJoin(sess *discordgo.Session, event *discordgo.GuildMemberAdd
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 
-	autoRoles, err := dbClient.AutoRoleRule.Query().All(ctx)
+	autoRoles, err := dbClient.AutoRoleRule.Query().Where(autorolerule.HasGuildWith(guild.GuildIDEQ(event.GuildID))).All(ctx)
 	if err != nil {
 		logger.Error("failed to fetch auto role rules", zap.Error(err))
 	}

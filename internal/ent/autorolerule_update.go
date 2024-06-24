@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/SethCurry/scotty/internal/ent/autorolerule"
+	"github.com/SethCurry/scotty/internal/ent/guild"
 	"github.com/SethCurry/scotty/internal/ent/predicate"
 )
 
@@ -41,9 +42,34 @@ func (arru *AutoRoleRuleUpdate) SetNillableRoleID(s *string) *AutoRoleRuleUpdate
 	return arru
 }
 
+// SetGuildID sets the "guild" edge to the Guild entity by ID.
+func (arru *AutoRoleRuleUpdate) SetGuildID(id int) *AutoRoleRuleUpdate {
+	arru.mutation.SetGuildID(id)
+	return arru
+}
+
+// SetNillableGuildID sets the "guild" edge to the Guild entity by ID if the given value is not nil.
+func (arru *AutoRoleRuleUpdate) SetNillableGuildID(id *int) *AutoRoleRuleUpdate {
+	if id != nil {
+		arru = arru.SetGuildID(*id)
+	}
+	return arru
+}
+
+// SetGuild sets the "guild" edge to the Guild entity.
+func (arru *AutoRoleRuleUpdate) SetGuild(g *Guild) *AutoRoleRuleUpdate {
+	return arru.SetGuildID(g.ID)
+}
+
 // Mutation returns the AutoRoleRuleMutation object of the builder.
 func (arru *AutoRoleRuleUpdate) Mutation() *AutoRoleRuleMutation {
 	return arru.mutation
+}
+
+// ClearGuild clears the "guild" edge to the Guild entity.
+func (arru *AutoRoleRuleUpdate) ClearGuild() *AutoRoleRuleUpdate {
+	arru.mutation.ClearGuild()
+	return arru
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -85,6 +111,35 @@ func (arru *AutoRoleRuleUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	if value, ok := arru.mutation.RoleID(); ok {
 		_spec.SetField(autorolerule.FieldRoleID, field.TypeString, value)
 	}
+	if arru.mutation.GuildCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   autorolerule.GuildTable,
+			Columns: []string{autorolerule.GuildColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(guild.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := arru.mutation.GuildIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   autorolerule.GuildTable,
+			Columns: []string{autorolerule.GuildColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(guild.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, arru.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{autorolerule.Label}
@@ -119,9 +174,34 @@ func (arruo *AutoRoleRuleUpdateOne) SetNillableRoleID(s *string) *AutoRoleRuleUp
 	return arruo
 }
 
+// SetGuildID sets the "guild" edge to the Guild entity by ID.
+func (arruo *AutoRoleRuleUpdateOne) SetGuildID(id int) *AutoRoleRuleUpdateOne {
+	arruo.mutation.SetGuildID(id)
+	return arruo
+}
+
+// SetNillableGuildID sets the "guild" edge to the Guild entity by ID if the given value is not nil.
+func (arruo *AutoRoleRuleUpdateOne) SetNillableGuildID(id *int) *AutoRoleRuleUpdateOne {
+	if id != nil {
+		arruo = arruo.SetGuildID(*id)
+	}
+	return arruo
+}
+
+// SetGuild sets the "guild" edge to the Guild entity.
+func (arruo *AutoRoleRuleUpdateOne) SetGuild(g *Guild) *AutoRoleRuleUpdateOne {
+	return arruo.SetGuildID(g.ID)
+}
+
 // Mutation returns the AutoRoleRuleMutation object of the builder.
 func (arruo *AutoRoleRuleUpdateOne) Mutation() *AutoRoleRuleMutation {
 	return arruo.mutation
+}
+
+// ClearGuild clears the "guild" edge to the Guild entity.
+func (arruo *AutoRoleRuleUpdateOne) ClearGuild() *AutoRoleRuleUpdateOne {
+	arruo.mutation.ClearGuild()
+	return arruo
 }
 
 // Where appends a list predicates to the AutoRoleRuleUpdate builder.
@@ -192,6 +272,35 @@ func (arruo *AutoRoleRuleUpdateOne) sqlSave(ctx context.Context) (_node *AutoRol
 	}
 	if value, ok := arruo.mutation.RoleID(); ok {
 		_spec.SetField(autorolerule.FieldRoleID, field.TypeString, value)
+	}
+	if arruo.mutation.GuildCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   autorolerule.GuildTable,
+			Columns: []string{autorolerule.GuildColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(guild.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := arruo.mutation.GuildIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   autorolerule.GuildTable,
+			Columns: []string{autorolerule.GuildColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(guild.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &AutoRoleRule{config: arruo.config}
 	_spec.Assign = _node.assignValues

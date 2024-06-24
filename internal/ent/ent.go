@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/SethCurry/scotty/internal/ent/autorolerule"
+	"github.com/SethCurry/scotty/internal/ent/guild"
 	"github.com/SethCurry/scotty/internal/ent/user"
 )
 
@@ -75,6 +76,7 @@ func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			autorolerule.Table: autorolerule.ValidColumn,
+			guild.Table:        guild.ValidColumn,
 			user.Table:         user.ValidColumn,
 		})
 	})

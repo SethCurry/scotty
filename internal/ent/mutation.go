@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/SethCurry/scotty/internal/ent/autorolerule"
+	"github.com/SethCurry/scotty/internal/ent/guild"
 	"github.com/SethCurry/scotty/internal/ent/predicate"
 	"github.com/SethCurry/scotty/internal/ent/user"
 )
@@ -25,6 +26,7 @@ const (
 
 	// Node types.
 	TypeAutoRoleRule = "AutoRoleRule"
+	TypeGuild        = "Guild"
 	TypeUser         = "User"
 )
 
@@ -36,6 +38,8 @@ type AutoRoleRuleMutation struct {
 	id            *int
 	role_id       *string
 	clearedFields map[string]struct{}
+	guild         *int
+	clearedguild  bool
 	done          bool
 	oldValue      func(context.Context) (*AutoRoleRule, error)
 	predicates    []predicate.AutoRoleRule
@@ -175,6 +179,45 @@ func (m *AutoRoleRuleMutation) ResetRoleID() {
 	m.role_id = nil
 }
 
+// SetGuildID sets the "guild" edge to the Guild entity by id.
+func (m *AutoRoleRuleMutation) SetGuildID(id int) {
+	m.guild = &id
+}
+
+// ClearGuild clears the "guild" edge to the Guild entity.
+func (m *AutoRoleRuleMutation) ClearGuild() {
+	m.clearedguild = true
+}
+
+// GuildCleared reports if the "guild" edge to the Guild entity was cleared.
+func (m *AutoRoleRuleMutation) GuildCleared() bool {
+	return m.clearedguild
+}
+
+// GuildID returns the "guild" edge ID in the mutation.
+func (m *AutoRoleRuleMutation) GuildID() (id int, exists bool) {
+	if m.guild != nil {
+		return *m.guild, true
+	}
+	return
+}
+
+// GuildIDs returns the "guild" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// GuildID instead. It exists only for internal usage by the builders.
+func (m *AutoRoleRuleMutation) GuildIDs() (ids []int) {
+	if id := m.guild; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetGuild resets all changes to the "guild" edge.
+func (m *AutoRoleRuleMutation) ResetGuild() {
+	m.guild = nil
+	m.clearedguild = false
+}
+
 // Where appends a list predicates to the AutoRoleRuleMutation builder.
 func (m *AutoRoleRuleMutation) Where(ps ...predicate.AutoRoleRule) {
 	m.predicates = append(m.predicates, ps...)
@@ -308,19 +351,28 @@ func (m *AutoRoleRuleMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AutoRoleRuleMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.guild != nil {
+		edges = append(edges, autorolerule.EdgeGuild)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *AutoRoleRuleMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case autorolerule.EdgeGuild:
+		if id := m.guild; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AutoRoleRuleMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -332,26 +384,516 @@ func (m *AutoRoleRuleMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AutoRoleRuleMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedguild {
+		edges = append(edges, autorolerule.EdgeGuild)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *AutoRoleRuleMutation) EdgeCleared(name string) bool {
+	switch name {
+	case autorolerule.EdgeGuild:
+		return m.clearedguild
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *AutoRoleRuleMutation) ClearEdge(name string) error {
+	switch name {
+	case autorolerule.EdgeGuild:
+		m.ClearGuild()
+		return nil
+	}
 	return fmt.Errorf("unknown AutoRoleRule unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *AutoRoleRuleMutation) ResetEdge(name string) error {
+	switch name {
+	case autorolerule.EdgeGuild:
+		m.ResetGuild()
+		return nil
+	}
 	return fmt.Errorf("unknown AutoRoleRule edge %s", name)
+}
+
+// GuildMutation represents an operation that mutates the Guild nodes in the graph.
+type GuildMutation struct {
+	config
+	op                     Op
+	typ                    string
+	id                     *int
+	name                   *string
+	guild_id               *string
+	clearedFields          map[string]struct{}
+	auto_role_rules        map[int]struct{}
+	removedauto_role_rules map[int]struct{}
+	clearedauto_role_rules bool
+	done                   bool
+	oldValue               func(context.Context) (*Guild, error)
+	predicates             []predicate.Guild
+}
+
+var _ ent.Mutation = (*GuildMutation)(nil)
+
+// guildOption allows management of the mutation configuration using functional options.
+type guildOption func(*GuildMutation)
+
+// newGuildMutation creates new mutation for the Guild entity.
+func newGuildMutation(c config, op Op, opts ...guildOption) *GuildMutation {
+	m := &GuildMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeGuild,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withGuildID sets the ID field of the mutation.
+func withGuildID(id int) guildOption {
+	return func(m *GuildMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Guild
+		)
+		m.oldValue = func(ctx context.Context) (*Guild, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Guild.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withGuild sets the old Guild of the mutation.
+func withGuild(node *Guild) guildOption {
+	return func(m *GuildMutation) {
+		m.oldValue = func(context.Context) (*Guild, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m GuildMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m GuildMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *GuildMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *GuildMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Guild.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *GuildMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *GuildMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Guild entity.
+// If the Guild object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GuildMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *GuildMutation) ResetName() {
+	m.name = nil
+}
+
+// SetGuildID sets the "guild_id" field.
+func (m *GuildMutation) SetGuildID(s string) {
+	m.guild_id = &s
+}
+
+// GuildID returns the value of the "guild_id" field in the mutation.
+func (m *GuildMutation) GuildID() (r string, exists bool) {
+	v := m.guild_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGuildID returns the old "guild_id" field's value of the Guild entity.
+// If the Guild object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GuildMutation) OldGuildID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGuildID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGuildID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGuildID: %w", err)
+	}
+	return oldValue.GuildID, nil
+}
+
+// ResetGuildID resets all changes to the "guild_id" field.
+func (m *GuildMutation) ResetGuildID() {
+	m.guild_id = nil
+}
+
+// AddAutoRoleRuleIDs adds the "auto_role_rules" edge to the AutoRoleRule entity by ids.
+func (m *GuildMutation) AddAutoRoleRuleIDs(ids ...int) {
+	if m.auto_role_rules == nil {
+		m.auto_role_rules = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.auto_role_rules[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAutoRoleRules clears the "auto_role_rules" edge to the AutoRoleRule entity.
+func (m *GuildMutation) ClearAutoRoleRules() {
+	m.clearedauto_role_rules = true
+}
+
+// AutoRoleRulesCleared reports if the "auto_role_rules" edge to the AutoRoleRule entity was cleared.
+func (m *GuildMutation) AutoRoleRulesCleared() bool {
+	return m.clearedauto_role_rules
+}
+
+// RemoveAutoRoleRuleIDs removes the "auto_role_rules" edge to the AutoRoleRule entity by IDs.
+func (m *GuildMutation) RemoveAutoRoleRuleIDs(ids ...int) {
+	if m.removedauto_role_rules == nil {
+		m.removedauto_role_rules = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.auto_role_rules, ids[i])
+		m.removedauto_role_rules[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAutoRoleRules returns the removed IDs of the "auto_role_rules" edge to the AutoRoleRule entity.
+func (m *GuildMutation) RemovedAutoRoleRulesIDs() (ids []int) {
+	for id := range m.removedauto_role_rules {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AutoRoleRulesIDs returns the "auto_role_rules" edge IDs in the mutation.
+func (m *GuildMutation) AutoRoleRulesIDs() (ids []int) {
+	for id := range m.auto_role_rules {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAutoRoleRules resets all changes to the "auto_role_rules" edge.
+func (m *GuildMutation) ResetAutoRoleRules() {
+	m.auto_role_rules = nil
+	m.clearedauto_role_rules = false
+	m.removedauto_role_rules = nil
+}
+
+// Where appends a list predicates to the GuildMutation builder.
+func (m *GuildMutation) Where(ps ...predicate.Guild) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the GuildMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *GuildMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Guild, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *GuildMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *GuildMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Guild).
+func (m *GuildMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *GuildMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.name != nil {
+		fields = append(fields, guild.FieldName)
+	}
+	if m.guild_id != nil {
+		fields = append(fields, guild.FieldGuildID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *GuildMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case guild.FieldName:
+		return m.Name()
+	case guild.FieldGuildID:
+		return m.GuildID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *GuildMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case guild.FieldName:
+		return m.OldName(ctx)
+	case guild.FieldGuildID:
+		return m.OldGuildID(ctx)
+	}
+	return nil, fmt.Errorf("unknown Guild field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *GuildMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case guild.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case guild.FieldGuildID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGuildID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Guild field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *GuildMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *GuildMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *GuildMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Guild numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *GuildMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *GuildMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *GuildMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Guild nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *GuildMutation) ResetField(name string) error {
+	switch name {
+	case guild.FieldName:
+		m.ResetName()
+		return nil
+	case guild.FieldGuildID:
+		m.ResetGuildID()
+		return nil
+	}
+	return fmt.Errorf("unknown Guild field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *GuildMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.auto_role_rules != nil {
+		edges = append(edges, guild.EdgeAutoRoleRules)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *GuildMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case guild.EdgeAutoRoleRules:
+		ids := make([]ent.Value, 0, len(m.auto_role_rules))
+		for id := range m.auto_role_rules {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *GuildMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedauto_role_rules != nil {
+		edges = append(edges, guild.EdgeAutoRoleRules)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *GuildMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case guild.EdgeAutoRoleRules:
+		ids := make([]ent.Value, 0, len(m.removedauto_role_rules))
+		for id := range m.removedauto_role_rules {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *GuildMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedauto_role_rules {
+		edges = append(edges, guild.EdgeAutoRoleRules)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *GuildMutation) EdgeCleared(name string) bool {
+	switch name {
+	case guild.EdgeAutoRoleRules:
+		return m.clearedauto_role_rules
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *GuildMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Guild unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *GuildMutation) ResetEdge(name string) error {
+	switch name {
+	case guild.EdgeAutoRoleRules:
+		m.ResetAutoRoleRules()
+		return nil
+	}
+	return fmt.Errorf("unknown Guild edge %s", name)
 }
 
 // UserMutation represents an operation that mutates the User nodes in the graph.

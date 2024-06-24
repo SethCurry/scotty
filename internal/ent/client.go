@@ -14,7 +14,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/SethCurry/scotty/internal/ent/autorolerule"
+	"github.com/SethCurry/scotty/internal/ent/guild"
 	"github.com/SethCurry/scotty/internal/ent/user"
 )
 
@@ -25,6 +27,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// AutoRoleRule is the client for interacting with the AutoRoleRule builders.
 	AutoRoleRule *AutoRoleRuleClient
+	// Guild is the client for interacting with the Guild builders.
+	Guild *GuildClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -39,6 +43,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.AutoRoleRule = NewAutoRoleRuleClient(c.config)
+	c.Guild = NewGuildClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -133,6 +138,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:          ctx,
 		config:       cfg,
 		AutoRoleRule: NewAutoRoleRuleClient(cfg),
+		Guild:        NewGuildClient(cfg),
 		User:         NewUserClient(cfg),
 	}, nil
 }
@@ -154,6 +160,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:          ctx,
 		config:       cfg,
 		AutoRoleRule: NewAutoRoleRuleClient(cfg),
+		Guild:        NewGuildClient(cfg),
 		User:         NewUserClient(cfg),
 	}, nil
 }
@@ -184,6 +191,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.AutoRoleRule.Use(hooks...)
+	c.Guild.Use(hooks...)
 	c.User.Use(hooks...)
 }
 
@@ -191,6 +199,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.AutoRoleRule.Intercept(interceptors...)
+	c.Guild.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
 }
 
@@ -199,6 +208,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AutoRoleRuleMutation:
 		return c.AutoRoleRule.mutate(ctx, m)
+	case *GuildMutation:
+		return c.Guild.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
@@ -314,6 +325,22 @@ func (c *AutoRoleRuleClient) GetX(ctx context.Context, id int) *AutoRoleRule {
 	return obj
 }
 
+// QueryGuild queries the guild edge of a AutoRoleRule.
+func (c *AutoRoleRuleClient) QueryGuild(arr *AutoRoleRule) *GuildQuery {
+	query := (&GuildClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := arr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(autorolerule.Table, autorolerule.FieldID, id),
+			sqlgraph.To(guild.Table, guild.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, autorolerule.GuildTable, autorolerule.GuildColumn),
+		)
+		fromV = sqlgraph.Neighbors(arr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *AutoRoleRuleClient) Hooks() []Hook {
 	return c.hooks.AutoRoleRule
@@ -336,6 +363,155 @@ func (c *AutoRoleRuleClient) mutate(ctx context.Context, m *AutoRoleRuleMutation
 		return (&AutoRoleRuleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AutoRoleRule mutation op: %q", m.Op())
+	}
+}
+
+// GuildClient is a client for the Guild schema.
+type GuildClient struct {
+	config
+}
+
+// NewGuildClient returns a client for the Guild from the given config.
+func NewGuildClient(c config) *GuildClient {
+	return &GuildClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `guild.Hooks(f(g(h())))`.
+func (c *GuildClient) Use(hooks ...Hook) {
+	c.hooks.Guild = append(c.hooks.Guild, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `guild.Intercept(f(g(h())))`.
+func (c *GuildClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Guild = append(c.inters.Guild, interceptors...)
+}
+
+// Create returns a builder for creating a Guild entity.
+func (c *GuildClient) Create() *GuildCreate {
+	mutation := newGuildMutation(c.config, OpCreate)
+	return &GuildCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Guild entities.
+func (c *GuildClient) CreateBulk(builders ...*GuildCreate) *GuildCreateBulk {
+	return &GuildCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GuildClient) MapCreateBulk(slice any, setFunc func(*GuildCreate, int)) *GuildCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GuildCreateBulk{err: fmt.Errorf("calling to GuildClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GuildCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GuildCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Guild.
+func (c *GuildClient) Update() *GuildUpdate {
+	mutation := newGuildMutation(c.config, OpUpdate)
+	return &GuildUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GuildClient) UpdateOne(gu *Guild) *GuildUpdateOne {
+	mutation := newGuildMutation(c.config, OpUpdateOne, withGuild(gu))
+	return &GuildUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GuildClient) UpdateOneID(id int) *GuildUpdateOne {
+	mutation := newGuildMutation(c.config, OpUpdateOne, withGuildID(id))
+	return &GuildUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Guild.
+func (c *GuildClient) Delete() *GuildDelete {
+	mutation := newGuildMutation(c.config, OpDelete)
+	return &GuildDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GuildClient) DeleteOne(gu *Guild) *GuildDeleteOne {
+	return c.DeleteOneID(gu.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GuildClient) DeleteOneID(id int) *GuildDeleteOne {
+	builder := c.Delete().Where(guild.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GuildDeleteOne{builder}
+}
+
+// Query returns a query builder for Guild.
+func (c *GuildClient) Query() *GuildQuery {
+	return &GuildQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGuild},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Guild entity by its id.
+func (c *GuildClient) Get(ctx context.Context, id int) (*Guild, error) {
+	return c.Query().Where(guild.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GuildClient) GetX(ctx context.Context, id int) *Guild {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAutoRoleRules queries the auto_role_rules edge of a Guild.
+func (c *GuildClient) QueryAutoRoleRules(gu *Guild) *AutoRoleRuleQuery {
+	query := (&AutoRoleRuleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := gu.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(guild.Table, guild.FieldID, id),
+			sqlgraph.To(autorolerule.Table, autorolerule.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, guild.AutoRoleRulesTable, guild.AutoRoleRulesColumn),
+		)
+		fromV = sqlgraph.Neighbors(gu.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *GuildClient) Hooks() []Hook {
+	return c.hooks.Guild
+}
+
+// Interceptors returns the client interceptors.
+func (c *GuildClient) Interceptors() []Interceptor {
+	return c.inters.Guild
+}
+
+func (c *GuildClient) mutate(ctx context.Context, m *GuildMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GuildCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GuildUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GuildUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GuildDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Guild mutation op: %q", m.Op())
 	}
 }
 
@@ -475,9 +651,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AutoRoleRule, User []ent.Hook
+		AutoRoleRule, Guild, User []ent.Hook
 	}
 	inters struct {
-		AutoRoleRule, User []ent.Interceptor
+		AutoRoleRule, Guild, User []ent.Interceptor
 	}
 )

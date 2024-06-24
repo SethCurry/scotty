@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/SethCurry/scotty/internal/ent/autorolerule"
+	"github.com/SethCurry/scotty/internal/ent/guild"
 )
 
 // AutoRoleRuleCreate is the builder for creating a AutoRoleRule entity.
@@ -23,6 +24,25 @@ type AutoRoleRuleCreate struct {
 func (arrc *AutoRoleRuleCreate) SetRoleID(s string) *AutoRoleRuleCreate {
 	arrc.mutation.SetRoleID(s)
 	return arrc
+}
+
+// SetGuildID sets the "guild" edge to the Guild entity by ID.
+func (arrc *AutoRoleRuleCreate) SetGuildID(id int) *AutoRoleRuleCreate {
+	arrc.mutation.SetGuildID(id)
+	return arrc
+}
+
+// SetNillableGuildID sets the "guild" edge to the Guild entity by ID if the given value is not nil.
+func (arrc *AutoRoleRuleCreate) SetNillableGuildID(id *int) *AutoRoleRuleCreate {
+	if id != nil {
+		arrc = arrc.SetGuildID(*id)
+	}
+	return arrc
+}
+
+// SetGuild sets the "guild" edge to the Guild entity.
+func (arrc *AutoRoleRuleCreate) SetGuild(g *Guild) *AutoRoleRuleCreate {
+	return arrc.SetGuildID(g.ID)
 }
 
 // Mutation returns the AutoRoleRuleMutation object of the builder.
@@ -91,6 +111,23 @@ func (arrc *AutoRoleRuleCreate) createSpec() (*AutoRoleRule, *sqlgraph.CreateSpe
 	if value, ok := arrc.mutation.RoleID(); ok {
 		_spec.SetField(autorolerule.FieldRoleID, field.TypeString, value)
 		_node.RoleID = value
+	}
+	if nodes := arrc.mutation.GuildIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   autorolerule.GuildTable,
+			Columns: []string{autorolerule.GuildColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(guild.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.auto_role_rule_guild = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

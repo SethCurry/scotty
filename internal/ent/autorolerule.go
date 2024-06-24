@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/SethCurry/scotty/internal/ent/autorolerule"
+	"github.com/SethCurry/scotty/internal/ent/guild"
 )
 
 // AutoRoleRule is the model entity for the AutoRoleRule schema.
@@ -17,8 +18,32 @@ type AutoRoleRule struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// RoleID holds the value of the "role_id" field.
-	RoleID       string `json:"role_id,omitempty"`
-	selectValues sql.SelectValues
+	RoleID string `json:"role_id,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the AutoRoleRuleQuery when eager-loading is set.
+	Edges                AutoRoleRuleEdges `json:"edges"`
+	auto_role_rule_guild *int
+	selectValues         sql.SelectValues
+}
+
+// AutoRoleRuleEdges holds the relations/edges for other nodes in the graph.
+type AutoRoleRuleEdges struct {
+	// Guild holds the value of the guild edge.
+	Guild *Guild `json:"guild,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// GuildOrErr returns the Guild value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AutoRoleRuleEdges) GuildOrErr() (*Guild, error) {
+	if e.Guild != nil {
+		return e.Guild, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: guild.Label}
+	}
+	return nil, &NotLoadedError{edge: "guild"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -30,6 +55,8 @@ func (*AutoRoleRule) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case autorolerule.FieldRoleID:
 			values[i] = new(sql.NullString)
+		case autorolerule.ForeignKeys[0]: // auto_role_rule_guild
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -57,6 +84,13 @@ func (arr *AutoRoleRule) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				arr.RoleID = value.String
 			}
+		case autorolerule.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field auto_role_rule_guild", value)
+			} else if value.Valid {
+				arr.auto_role_rule_guild = new(int)
+				*arr.auto_role_rule_guild = int(value.Int64)
+			}
 		default:
 			arr.selectValues.Set(columns[i], values[i])
 		}
@@ -68,6 +102,11 @@ func (arr *AutoRoleRule) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (arr *AutoRoleRule) Value(name string) (ent.Value, error) {
 	return arr.selectValues.Get(name)
+}
+
+// QueryGuild queries the "guild" edge of the AutoRoleRule entity.
+func (arr *AutoRoleRule) QueryGuild() *GuildQuery {
+	return NewAutoRoleRuleClient(arr.config).QueryGuild(arr)
 }
 
 // Update returns a builder for updating this AutoRoleRule.

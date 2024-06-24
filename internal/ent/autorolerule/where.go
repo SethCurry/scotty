@@ -4,6 +4,7 @@ package autorolerule
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/SethCurry/scotty/internal/ent/predicate"
 )
 
@@ -120,6 +121,29 @@ func RoleIDEqualFold(v string) predicate.AutoRoleRule {
 // RoleIDContainsFold applies the ContainsFold predicate on the "role_id" field.
 func RoleIDContainsFold(v string) predicate.AutoRoleRule {
 	return predicate.AutoRoleRule(sql.FieldContainsFold(FieldRoleID, v))
+}
+
+// HasGuild applies the HasEdge predicate on the "guild" edge.
+func HasGuild() predicate.AutoRoleRule {
+	return predicate.AutoRoleRule(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, GuildTable, GuildColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGuildWith applies the HasEdge predicate on the "guild" edge with a given conditions (other predicates).
+func HasGuildWith(preds ...predicate.Guild) predicate.AutoRoleRule {
+	return predicate.AutoRoleRule(func(s *sql.Selector) {
+		step := newGuildStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

@@ -4,6 +4,7 @@ package autorolerule
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -13,8 +14,17 @@ const (
 	FieldID = "id"
 	// FieldRoleID holds the string denoting the role_id field in the database.
 	FieldRoleID = "role_id"
+	// EdgeGuild holds the string denoting the guild edge name in mutations.
+	EdgeGuild = "guild"
 	// Table holds the table name of the autorolerule in the database.
 	Table = "auto_role_rules"
+	// GuildTable is the table that holds the guild relation/edge.
+	GuildTable = "auto_role_rules"
+	// GuildInverseTable is the table name for the Guild entity.
+	// It exists in this package in order to avoid circular dependency with the "guild" package.
+	GuildInverseTable = "guilds"
+	// GuildColumn is the table column denoting the guild relation/edge.
+	GuildColumn = "auto_role_rule_guild"
 )
 
 // Columns holds all SQL columns for autorolerule fields.
@@ -23,10 +33,21 @@ var Columns = []string{
 	FieldRoleID,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "auto_role_rules"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"auto_role_rule_guild",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -44,4 +65,18 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByRoleID orders the results by the role_id field.
 func ByRoleID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRoleID, opts...).ToFunc()
+}
+
+// ByGuildField orders the results by guild field.
+func ByGuildField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGuildStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newGuildStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GuildInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, GuildTable, GuildColumn),
+	)
 }

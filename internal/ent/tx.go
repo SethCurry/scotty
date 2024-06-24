@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// AutoRoleRule is the client for interacting with the AutoRoleRule builders.
 	AutoRoleRule *AutoRoleRuleClient
+	// Guild is the client for interacting with the Guild builders.
+	Guild *GuildClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -148,6 +150,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.AutoRoleRule = NewAutoRoleRuleClient(tx.config)
+	tx.Guild = NewGuildClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

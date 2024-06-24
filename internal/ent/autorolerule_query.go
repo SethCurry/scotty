@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/SethCurry/scotty/internal/ent/autorolerule"
+	"github.com/SethCurry/scotty/internal/ent/guild"
 	"github.com/SethCurry/scotty/internal/ent/predicate"
 )
 
@@ -21,6 +22,8 @@ type AutoRoleRuleQuery struct {
 	order      []autorolerule.OrderOption
 	inters     []Interceptor
 	predicates []predicate.AutoRoleRule
+	withGuild  *GuildQuery
+	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -55,6 +58,28 @@ func (arrq *AutoRoleRuleQuery) Unique(unique bool) *AutoRoleRuleQuery {
 func (arrq *AutoRoleRuleQuery) Order(o ...autorolerule.OrderOption) *AutoRoleRuleQuery {
 	arrq.order = append(arrq.order, o...)
 	return arrq
+}
+
+// QueryGuild chains the current query on the "guild" edge.
+func (arrq *AutoRoleRuleQuery) QueryGuild() *GuildQuery {
+	query := (&GuildClient{config: arrq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := arrq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := arrq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(autorolerule.Table, autorolerule.FieldID, selector),
+			sqlgraph.To(guild.Table, guild.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, autorolerule.GuildTable, autorolerule.GuildColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(arrq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first AutoRoleRule entity from the query.
@@ -249,10 +274,22 @@ func (arrq *AutoRoleRuleQuery) Clone() *AutoRoleRuleQuery {
 		order:      append([]autorolerule.OrderOption{}, arrq.order...),
 		inters:     append([]Interceptor{}, arrq.inters...),
 		predicates: append([]predicate.AutoRoleRule{}, arrq.predicates...),
+		withGuild:  arrq.withGuild.Clone(),
 		// clone intermediate query.
 		sql:  arrq.sql.Clone(),
 		path: arrq.path,
 	}
+}
+
+// WithGuild tells the query-builder to eager-load the nodes that are connected to
+// the "guild" edge. The optional arguments are used to configure the query builder of the edge.
+func (arrq *AutoRoleRuleQuery) WithGuild(opts ...func(*GuildQuery)) *AutoRoleRuleQuery {
+	query := (&GuildClient{config: arrq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	arrq.withGuild = query
+	return arrq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -331,15 +368,26 @@ func (arrq *AutoRoleRuleQuery) prepareQuery(ctx context.Context) error {
 
 func (arrq *AutoRoleRuleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*AutoRoleRule, error) {
 	var (
-		nodes = []*AutoRoleRule{}
-		_spec = arrq.querySpec()
+		nodes       = []*AutoRoleRule{}
+		withFKs     = arrq.withFKs
+		_spec       = arrq.querySpec()
+		loadedTypes = [1]bool{
+			arrq.withGuild != nil,
+		}
 	)
+	if arrq.withGuild != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, autorolerule.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*AutoRoleRule).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &AutoRoleRule{config: arrq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -351,7 +399,46 @@ func (arrq *AutoRoleRuleQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := arrq.withGuild; query != nil {
+		if err := arrq.loadGuild(ctx, query, nodes, nil,
+			func(n *AutoRoleRule, e *Guild) { n.Edges.Guild = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (arrq *AutoRoleRuleQuery) loadGuild(ctx context.Context, query *GuildQuery, nodes []*AutoRoleRule, init func(*AutoRoleRule), assign func(*AutoRoleRule, *Guild)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*AutoRoleRule)
+	for i := range nodes {
+		if nodes[i].auto_role_rule_guild == nil {
+			continue
+		}
+		fk := *nodes[i].auto_role_rule_guild
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(guild.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "auto_role_rule_guild" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (arrq *AutoRoleRuleQuery) sqlCount(ctx context.Context) (int, error) {
