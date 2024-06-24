@@ -1,0 +1,10 @@
+[Unit]
+Description=The scotty bot service.
+
+[Service]
+User=scotty
+Group=scotty
+ExecStart=/usr/local/bin/scotty start
+
+[Install]
+WantedBy=multi-user.target

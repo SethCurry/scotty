@@ -1,0 +1,8 @@
+- Write user documentation
+  - How to install?
+  - How to register Discord commands?
+  - How to migrate the database?
+  - How to start the bot?
+- Developer documentation
+  - How to run tests?
+  - How to deploy?
