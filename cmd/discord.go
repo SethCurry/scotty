@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/SethCurry/scotty/internal/discord"
+	"github.com/SethCurry/scotty/internal/scotty"
 	"github.com/SethCurry/scotty/pkg/eleven"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
@@ -76,6 +77,7 @@ func (s StartBot) Run(ctx *Context) error {
 
 	bot.RegisterCommand("scotty", discord.ScottyCommand(elClient, ctx.Config.TTS.ScottyVoiceID))
 	bot.RegisterCommand("leaderboard", discord.LeaderboardCommand)
+	bot.OnUserJoinGuild(scotty.AutoRoleOnUserJoin)
 
 	ctx.Logger.Info("waiting for context to be cancelled")
 

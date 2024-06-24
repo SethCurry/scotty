@@ -2,8 +2,19 @@
 
 package ent
 
+import (
+	"github.com/SethCurry/scotty/internal/ent/schema"
+	"github.com/SethCurry/scotty/internal/ent/user"
+)
+
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescRankedScore is the schema descriptor for ranked_score field.
+	userDescRankedScore := userFields[1].Descriptor()
+	// user.DefaultRankedScore holds the default value on creation for the ranked_score field.
+	user.DefaultRankedScore = userDescRankedScore.Default.(int)
 }

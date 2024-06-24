@@ -13,8 +13,8 @@ const (
 	FieldID = "id"
 	// FieldDiscordID holds the string denoting the discord_id field in the database.
 	FieldDiscordID = "discord_id"
-	// FieldRank holds the string denoting the rank field in the database.
-	FieldRank = "rank"
+	// FieldRankedScore holds the string denoting the ranked_score field in the database.
+	FieldRankedScore = "ranked_score"
 	// FieldFinalsID holds the string denoting the finals_id field in the database.
 	FieldFinalsID = "finals_id"
 	// Table holds the table name of the user in the database.
@@ -25,7 +25,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldDiscordID,
-	FieldRank,
+	FieldRankedScore,
 	FieldFinalsID,
 }
 
@@ -38,6 +38,11 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// DefaultRankedScore holds the default value on creation for the "ranked_score" field.
+	DefaultRankedScore int
+)
 
 // OrderOption defines the ordering options for the User queries.
 type OrderOption func(*sql.Selector)
@@ -52,9 +57,9 @@ func ByDiscordID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDiscordID, opts...).ToFunc()
 }
 
-// ByRank orders the results by the rank field.
-func ByRank(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldRank, opts...).ToFunc()
+// ByRankedScore orders the results by the ranked_score field.
+func ByRankedScore(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRankedScore, opts...).ToFunc()
 }
 
 // ByFinalsID orders the results by the finals_id field.

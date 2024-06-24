@@ -8,12 +8,23 @@ import (
 )
 
 var (
+	// AutoRoleRulesColumns holds the columns for the "auto_role_rules" table.
+	AutoRoleRulesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "role_id", Type: field.TypeString, Unique: true},
+	}
+	// AutoRoleRulesTable holds the schema information for the "auto_role_rules" table.
+	AutoRoleRulesTable = &schema.Table{
+		Name:       "auto_role_rules",
+		Columns:    AutoRoleRulesColumns,
+		PrimaryKey: []*schema.Column{AutoRoleRulesColumns[0]},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "discord_id", Type: field.TypeString},
-		{Name: "rank", Type: field.TypeInt8},
-		{Name: "finals_id", Type: field.TypeString},
+		{Name: "discord_id", Type: field.TypeString, Unique: true},
+		{Name: "ranked_score", Type: field.TypeInt, Default: 0},
+		{Name: "finals_id", Type: field.TypeString, Unique: true, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -23,6 +34,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AutoRoleRulesTable,
 		UsersTable,
 	}
 )

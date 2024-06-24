@@ -75,6 +75,11 @@ type Bot struct {
 	userJoinHandlers []func(*discordgo.Session, *discordgo.GuildMemberAdd, *ent.Client, *zap.Logger)
 }
 
+// OnUserJoinGuild is used to register a new handler for when a user joins the guild.
+func (b *Bot) OnUserJoinGuild(handler func(*discordgo.Session, *discordgo.GuildMemberAdd, *ent.Client, *zap.Logger)) {
+	b.userJoinHandlers = append(b.userJoinHandlers, handler)
+}
+
 // RegisterCommand registers a new slash command handler with the bot.
 // This does not register it with Discord, it only ensures the bot is
 // ready to handle that slash command.

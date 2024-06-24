@@ -9,6 +9,18 @@ import (
 	"github.com/SethCurry/scotty/internal/ent"
 )
 
+// The AutoRoleRuleFunc type is an adapter to allow the use of ordinary
+// function as AutoRoleRule mutator.
+type AutoRoleRuleFunc func(context.Context, *ent.AutoRoleRuleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AutoRoleRuleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AutoRoleRuleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AutoRoleRuleMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)

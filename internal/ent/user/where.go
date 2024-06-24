@@ -57,9 +57,9 @@ func DiscordID(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldDiscordID, v))
 }
 
-// Rank applies equality check predicate on the "rank" field. It's identical to RankEQ.
-func Rank(v int8) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldRank, v))
+// RankedScore applies equality check predicate on the "ranked_score" field. It's identical to RankedScoreEQ.
+func RankedScore(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldRankedScore, v))
 }
 
 // FinalsID applies equality check predicate on the "finals_id" field. It's identical to FinalsIDEQ.
@@ -132,44 +132,44 @@ func DiscordIDContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldDiscordID, v))
 }
 
-// RankEQ applies the EQ predicate on the "rank" field.
-func RankEQ(v int8) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldRank, v))
+// RankedScoreEQ applies the EQ predicate on the "ranked_score" field.
+func RankedScoreEQ(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldRankedScore, v))
 }
 
-// RankNEQ applies the NEQ predicate on the "rank" field.
-func RankNEQ(v int8) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldRank, v))
+// RankedScoreNEQ applies the NEQ predicate on the "ranked_score" field.
+func RankedScoreNEQ(v int) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldRankedScore, v))
 }
 
-// RankIn applies the In predicate on the "rank" field.
-func RankIn(vs ...int8) predicate.User {
-	return predicate.User(sql.FieldIn(FieldRank, vs...))
+// RankedScoreIn applies the In predicate on the "ranked_score" field.
+func RankedScoreIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldIn(FieldRankedScore, vs...))
 }
 
-// RankNotIn applies the NotIn predicate on the "rank" field.
-func RankNotIn(vs ...int8) predicate.User {
-	return predicate.User(sql.FieldNotIn(FieldRank, vs...))
+// RankedScoreNotIn applies the NotIn predicate on the "ranked_score" field.
+func RankedScoreNotIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldRankedScore, vs...))
 }
 
-// RankGT applies the GT predicate on the "rank" field.
-func RankGT(v int8) predicate.User {
-	return predicate.User(sql.FieldGT(FieldRank, v))
+// RankedScoreGT applies the GT predicate on the "ranked_score" field.
+func RankedScoreGT(v int) predicate.User {
+	return predicate.User(sql.FieldGT(FieldRankedScore, v))
 }
 
-// RankGTE applies the GTE predicate on the "rank" field.
-func RankGTE(v int8) predicate.User {
-	return predicate.User(sql.FieldGTE(FieldRank, v))
+// RankedScoreGTE applies the GTE predicate on the "ranked_score" field.
+func RankedScoreGTE(v int) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldRankedScore, v))
 }
 
-// RankLT applies the LT predicate on the "rank" field.
-func RankLT(v int8) predicate.User {
-	return predicate.User(sql.FieldLT(FieldRank, v))
+// RankedScoreLT applies the LT predicate on the "ranked_score" field.
+func RankedScoreLT(v int) predicate.User {
+	return predicate.User(sql.FieldLT(FieldRankedScore, v))
 }
 
-// RankLTE applies the LTE predicate on the "rank" field.
-func RankLTE(v int8) predicate.User {
-	return predicate.User(sql.FieldLTE(FieldRank, v))
+// RankedScoreLTE applies the LTE predicate on the "ranked_score" field.
+func RankedScoreLTE(v int) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldRankedScore, v))
 }
 
 // FinalsIDEQ applies the EQ predicate on the "finals_id" field.
@@ -225,6 +225,16 @@ func FinalsIDHasPrefix(v string) predicate.User {
 // FinalsIDHasSuffix applies the HasSuffix predicate on the "finals_id" field.
 func FinalsIDHasSuffix(v string) predicate.User {
 	return predicate.User(sql.FieldHasSuffix(FieldFinalsID, v))
+}
+
+// FinalsIDIsNil applies the IsNil predicate on the "finals_id" field.
+func FinalsIDIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldFinalsID))
+}
+
+// FinalsIDNotNil applies the NotNil predicate on the "finals_id" field.
+func FinalsIDNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldFinalsID))
 }
 
 // FinalsIDEqualFold applies the EqualFold predicate on the "finals_id" field.

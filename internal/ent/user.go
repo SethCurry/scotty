@@ -18,8 +18,8 @@ type User struct {
 	ID int `json:"id,omitempty"`
 	// DiscordID holds the value of the "discord_id" field.
 	DiscordID string `json:"discord_id,omitempty"`
-	// Rank holds the value of the "rank" field.
-	Rank int8 `json:"rank,omitempty"`
+	// RankedScore holds the value of the "ranked_score" field.
+	RankedScore int `json:"ranked_score,omitempty"`
 	// FinalsID holds the value of the "finals_id" field.
 	FinalsID     string `json:"finals_id,omitempty"`
 	selectValues sql.SelectValues
@@ -30,7 +30,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldID, user.FieldRank:
+		case user.FieldID, user.FieldRankedScore:
 			values[i] = new(sql.NullInt64)
 		case user.FieldDiscordID, user.FieldFinalsID:
 			values[i] = new(sql.NullString)
@@ -61,11 +61,11 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.DiscordID = value.String
 			}
-		case user.FieldRank:
+		case user.FieldRankedScore:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field rank", values[i])
+				return fmt.Errorf("unexpected type %T for field ranked_score", values[i])
 			} else if value.Valid {
-				u.Rank = int8(value.Int64)
+				u.RankedScore = int(value.Int64)
 			}
 		case user.FieldFinalsID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -112,8 +112,8 @@ func (u *User) String() string {
 	builder.WriteString("discord_id=")
 	builder.WriteString(u.DiscordID)
 	builder.WriteString(", ")
-	builder.WriteString("rank=")
-	builder.WriteString(fmt.Sprintf("%v", u.Rank))
+	builder.WriteString("ranked_score=")
+	builder.WriteString(fmt.Sprintf("%v", u.RankedScore))
 	builder.WriteString(", ")
 	builder.WriteString("finals_id=")
 	builder.WriteString(u.FinalsID)

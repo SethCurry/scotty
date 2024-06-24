@@ -41,24 +41,24 @@ func (uu *UserUpdate) SetNillableDiscordID(s *string) *UserUpdate {
 	return uu
 }
 
-// SetRank sets the "rank" field.
-func (uu *UserUpdate) SetRank(i int8) *UserUpdate {
-	uu.mutation.ResetRank()
-	uu.mutation.SetRank(i)
+// SetRankedScore sets the "ranked_score" field.
+func (uu *UserUpdate) SetRankedScore(i int) *UserUpdate {
+	uu.mutation.ResetRankedScore()
+	uu.mutation.SetRankedScore(i)
 	return uu
 }
 
-// SetNillableRank sets the "rank" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableRank(i *int8) *UserUpdate {
+// SetNillableRankedScore sets the "ranked_score" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableRankedScore(i *int) *UserUpdate {
 	if i != nil {
-		uu.SetRank(*i)
+		uu.SetRankedScore(*i)
 	}
 	return uu
 }
 
-// AddRank adds i to the "rank" field.
-func (uu *UserUpdate) AddRank(i int8) *UserUpdate {
-	uu.mutation.AddRank(i)
+// AddRankedScore adds i to the "ranked_score" field.
+func (uu *UserUpdate) AddRankedScore(i int) *UserUpdate {
+	uu.mutation.AddRankedScore(i)
 	return uu
 }
 
@@ -73,6 +73,12 @@ func (uu *UserUpdate) SetNillableFinalsID(s *string) *UserUpdate {
 	if s != nil {
 		uu.SetFinalsID(*s)
 	}
+	return uu
+}
+
+// ClearFinalsID clears the value of the "finals_id" field.
+func (uu *UserUpdate) ClearFinalsID() *UserUpdate {
+	uu.mutation.ClearFinalsID()
 	return uu
 }
 
@@ -120,14 +126,17 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.DiscordID(); ok {
 		_spec.SetField(user.FieldDiscordID, field.TypeString, value)
 	}
-	if value, ok := uu.mutation.Rank(); ok {
-		_spec.SetField(user.FieldRank, field.TypeInt8, value)
+	if value, ok := uu.mutation.RankedScore(); ok {
+		_spec.SetField(user.FieldRankedScore, field.TypeInt, value)
 	}
-	if value, ok := uu.mutation.AddedRank(); ok {
-		_spec.AddField(user.FieldRank, field.TypeInt8, value)
+	if value, ok := uu.mutation.AddedRankedScore(); ok {
+		_spec.AddField(user.FieldRankedScore, field.TypeInt, value)
 	}
 	if value, ok := uu.mutation.FinalsID(); ok {
 		_spec.SetField(user.FieldFinalsID, field.TypeString, value)
+	}
+	if uu.mutation.FinalsIDCleared() {
+		_spec.ClearField(user.FieldFinalsID, field.TypeString)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -163,24 +172,24 @@ func (uuo *UserUpdateOne) SetNillableDiscordID(s *string) *UserUpdateOne {
 	return uuo
 }
 
-// SetRank sets the "rank" field.
-func (uuo *UserUpdateOne) SetRank(i int8) *UserUpdateOne {
-	uuo.mutation.ResetRank()
-	uuo.mutation.SetRank(i)
+// SetRankedScore sets the "ranked_score" field.
+func (uuo *UserUpdateOne) SetRankedScore(i int) *UserUpdateOne {
+	uuo.mutation.ResetRankedScore()
+	uuo.mutation.SetRankedScore(i)
 	return uuo
 }
 
-// SetNillableRank sets the "rank" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableRank(i *int8) *UserUpdateOne {
+// SetNillableRankedScore sets the "ranked_score" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableRankedScore(i *int) *UserUpdateOne {
 	if i != nil {
-		uuo.SetRank(*i)
+		uuo.SetRankedScore(*i)
 	}
 	return uuo
 }
 
-// AddRank adds i to the "rank" field.
-func (uuo *UserUpdateOne) AddRank(i int8) *UserUpdateOne {
-	uuo.mutation.AddRank(i)
+// AddRankedScore adds i to the "ranked_score" field.
+func (uuo *UserUpdateOne) AddRankedScore(i int) *UserUpdateOne {
+	uuo.mutation.AddRankedScore(i)
 	return uuo
 }
 
@@ -195,6 +204,12 @@ func (uuo *UserUpdateOne) SetNillableFinalsID(s *string) *UserUpdateOne {
 	if s != nil {
 		uuo.SetFinalsID(*s)
 	}
+	return uuo
+}
+
+// ClearFinalsID clears the value of the "finals_id" field.
+func (uuo *UserUpdateOne) ClearFinalsID() *UserUpdateOne {
+	uuo.mutation.ClearFinalsID()
 	return uuo
 }
 
@@ -272,14 +287,17 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.DiscordID(); ok {
 		_spec.SetField(user.FieldDiscordID, field.TypeString, value)
 	}
-	if value, ok := uuo.mutation.Rank(); ok {
-		_spec.SetField(user.FieldRank, field.TypeInt8, value)
+	if value, ok := uuo.mutation.RankedScore(); ok {
+		_spec.SetField(user.FieldRankedScore, field.TypeInt, value)
 	}
-	if value, ok := uuo.mutation.AddedRank(); ok {
-		_spec.AddField(user.FieldRank, field.TypeInt8, value)
+	if value, ok := uuo.mutation.AddedRankedScore(); ok {
+		_spec.AddField(user.FieldRankedScore, field.TypeInt, value)
 	}
 	if value, ok := uuo.mutation.FinalsID(); ok {
 		_spec.SetField(user.FieldFinalsID, field.TypeString, value)
+	}
+	if uuo.mutation.FinalsIDCleared() {
+		_spec.ClearField(user.FieldFinalsID, field.TypeString)
 	}
 	_node = &User{config: uuo.config}
 	_spec.Assign = _node.assignValues

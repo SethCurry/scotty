@@ -25,15 +25,31 @@ func (uc *UserCreate) SetDiscordID(s string) *UserCreate {
 	return uc
 }
 
-// SetRank sets the "rank" field.
-func (uc *UserCreate) SetRank(i int8) *UserCreate {
-	uc.mutation.SetRank(i)
+// SetRankedScore sets the "ranked_score" field.
+func (uc *UserCreate) SetRankedScore(i int) *UserCreate {
+	uc.mutation.SetRankedScore(i)
+	return uc
+}
+
+// SetNillableRankedScore sets the "ranked_score" field if the given value is not nil.
+func (uc *UserCreate) SetNillableRankedScore(i *int) *UserCreate {
+	if i != nil {
+		uc.SetRankedScore(*i)
+	}
 	return uc
 }
 
 // SetFinalsID sets the "finals_id" field.
 func (uc *UserCreate) SetFinalsID(s string) *UserCreate {
 	uc.mutation.SetFinalsID(s)
+	return uc
+}
+
+// SetNillableFinalsID sets the "finals_id" field if the given value is not nil.
+func (uc *UserCreate) SetNillableFinalsID(s *string) *UserCreate {
+	if s != nil {
+		uc.SetFinalsID(*s)
+	}
 	return uc
 }
 
@@ -44,6 +60,7 @@ func (uc *UserCreate) Mutation() *UserMutation {
 
 // Save creates the User in the database.
 func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
+	uc.defaults()
 	return withHooks(ctx, uc.sqlSave, uc.mutation, uc.hooks)
 }
 
@@ -69,16 +86,21 @@ func (uc *UserCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (uc *UserCreate) defaults() {
+	if _, ok := uc.mutation.RankedScore(); !ok {
+		v := user.DefaultRankedScore
+		uc.mutation.SetRankedScore(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.DiscordID(); !ok {
 		return &ValidationError{Name: "discord_id", err: errors.New(`ent: missing required field "User.discord_id"`)}
 	}
-	if _, ok := uc.mutation.Rank(); !ok {
-		return &ValidationError{Name: "rank", err: errors.New(`ent: missing required field "User.rank"`)}
-	}
-	if _, ok := uc.mutation.FinalsID(); !ok {
-		return &ValidationError{Name: "finals_id", err: errors.New(`ent: missing required field "User.finals_id"`)}
+	if _, ok := uc.mutation.RankedScore(); !ok {
+		return &ValidationError{Name: "ranked_score", err: errors.New(`ent: missing required field "User.ranked_score"`)}
 	}
 	return nil
 }
@@ -110,9 +132,9 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldDiscordID, field.TypeString, value)
 		_node.DiscordID = value
 	}
-	if value, ok := uc.mutation.Rank(); ok {
-		_spec.SetField(user.FieldRank, field.TypeInt8, value)
-		_node.Rank = value
+	if value, ok := uc.mutation.RankedScore(); ok {
+		_spec.SetField(user.FieldRankedScore, field.TypeInt, value)
+		_node.RankedScore = value
 	}
 	if value, ok := uc.mutation.FinalsID(); ok {
 		_spec.SetField(user.FieldFinalsID, field.TypeString, value)
@@ -139,6 +161,7 @@ func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 	for i := range ucb.builders {
 		func(i int, root context.Context) {
 			builder := ucb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*UserMutation)
 				if !ok {

@@ -6,5 +6,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// AutoRoleRule is the predicate function for autorolerule builders.
+type AutoRoleRule func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
