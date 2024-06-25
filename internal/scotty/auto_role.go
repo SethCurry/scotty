@@ -34,7 +34,9 @@ func AutoRoleOnUserJoin(sess *discordgo.Session, event *discordgo.GuildMemberAdd
 	}
 }
 
-type WelcomeTemplateContext struct{}
+type WelcomeTemplateContext struct {
+	User *discordgo.User
+}
 
 func WelcomeOnUserJoin(sess *discordgo.Session, event *discordgo.GuildMemberAdd, dbClient *ent.Client, logger *zap.Logger) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
@@ -55,7 +57,9 @@ func WelcomeOnUserJoin(sess *discordgo.Session, event *discordgo.GuildMemberAdd,
 
 		buf := bytes.NewBuffer([]byte{})
 
-		err = tmpl.Execute(buf, WelcomeTemplateContext{})
+		err = tmpl.Execute(buf, WelcomeTemplateContext{
+			User: event.User,
+		})
 		if err != nil {
 			logger.Error("failed to execute welcome message", zap.String("guild_id", event.GuildID), zap.Error(err))
 			return
