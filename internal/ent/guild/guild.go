@@ -16,6 +16,10 @@ const (
 	FieldName = "name"
 	// FieldGuildID holds the string denoting the guild_id field in the database.
 	FieldGuildID = "guild_id"
+	// FieldWelcomeTemplate holds the string denoting the welcome_template field in the database.
+	FieldWelcomeTemplate = "welcome_template"
+	// FieldWelcomeChannel holds the string denoting the welcome_channel field in the database.
+	FieldWelcomeChannel = "welcome_channel"
 	// EdgeAutoRoleRules holds the string denoting the auto_role_rules edge name in mutations.
 	EdgeAutoRoleRules = "auto_role_rules"
 	// Table holds the table name of the guild in the database.
@@ -34,6 +38,8 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldGuildID,
+	FieldWelcomeTemplate,
+	FieldWelcomeChannel,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -45,6 +51,13 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// DefaultWelcomeTemplate holds the default value on creation for the "welcome_template" field.
+	DefaultWelcomeTemplate string
+	// DefaultWelcomeChannel holds the default value on creation for the "welcome_channel" field.
+	DefaultWelcomeChannel string
+)
 
 // OrderOption defines the ordering options for the Guild queries.
 type OrderOption func(*sql.Selector)
@@ -62,6 +75,16 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByGuildID orders the results by the guild_id field.
 func ByGuildID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldGuildID, opts...).ToFunc()
+}
+
+// ByWelcomeTemplate orders the results by the welcome_template field.
+func ByWelcomeTemplate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWelcomeTemplate, opts...).ToFunc()
+}
+
+// ByWelcomeChannel orders the results by the welcome_channel field.
+func ByWelcomeChannel(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWelcomeChannel, opts...).ToFunc()
 }
 
 // ByAutoRoleRulesCount orders the results by auto_role_rules count.

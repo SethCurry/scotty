@@ -32,6 +32,34 @@ func (gc *GuildCreate) SetGuildID(s string) *GuildCreate {
 	return gc
 }
 
+// SetWelcomeTemplate sets the "welcome_template" field.
+func (gc *GuildCreate) SetWelcomeTemplate(s string) *GuildCreate {
+	gc.mutation.SetWelcomeTemplate(s)
+	return gc
+}
+
+// SetNillableWelcomeTemplate sets the "welcome_template" field if the given value is not nil.
+func (gc *GuildCreate) SetNillableWelcomeTemplate(s *string) *GuildCreate {
+	if s != nil {
+		gc.SetWelcomeTemplate(*s)
+	}
+	return gc
+}
+
+// SetWelcomeChannel sets the "welcome_channel" field.
+func (gc *GuildCreate) SetWelcomeChannel(s string) *GuildCreate {
+	gc.mutation.SetWelcomeChannel(s)
+	return gc
+}
+
+// SetNillableWelcomeChannel sets the "welcome_channel" field if the given value is not nil.
+func (gc *GuildCreate) SetNillableWelcomeChannel(s *string) *GuildCreate {
+	if s != nil {
+		gc.SetWelcomeChannel(*s)
+	}
+	return gc
+}
+
 // AddAutoRoleRuleIDs adds the "auto_role_rules" edge to the AutoRoleRule entity by IDs.
 func (gc *GuildCreate) AddAutoRoleRuleIDs(ids ...int) *GuildCreate {
 	gc.mutation.AddAutoRoleRuleIDs(ids...)
@@ -54,6 +82,7 @@ func (gc *GuildCreate) Mutation() *GuildMutation {
 
 // Save creates the Guild in the database.
 func (gc *GuildCreate) Save(ctx context.Context) (*Guild, error) {
+	gc.defaults()
 	return withHooks(ctx, gc.sqlSave, gc.mutation, gc.hooks)
 }
 
@@ -79,6 +108,18 @@ func (gc *GuildCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (gc *GuildCreate) defaults() {
+	if _, ok := gc.mutation.WelcomeTemplate(); !ok {
+		v := guild.DefaultWelcomeTemplate
+		gc.mutation.SetWelcomeTemplate(v)
+	}
+	if _, ok := gc.mutation.WelcomeChannel(); !ok {
+		v := guild.DefaultWelcomeChannel
+		gc.mutation.SetWelcomeChannel(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (gc *GuildCreate) check() error {
 	if _, ok := gc.mutation.Name(); !ok {
@@ -86,6 +127,12 @@ func (gc *GuildCreate) check() error {
 	}
 	if _, ok := gc.mutation.GuildID(); !ok {
 		return &ValidationError{Name: "guild_id", err: errors.New(`ent: missing required field "Guild.guild_id"`)}
+	}
+	if _, ok := gc.mutation.WelcomeTemplate(); !ok {
+		return &ValidationError{Name: "welcome_template", err: errors.New(`ent: missing required field "Guild.welcome_template"`)}
+	}
+	if _, ok := gc.mutation.WelcomeChannel(); !ok {
+		return &ValidationError{Name: "welcome_channel", err: errors.New(`ent: missing required field "Guild.welcome_channel"`)}
 	}
 	return nil
 }
@@ -120,6 +167,14 @@ func (gc *GuildCreate) createSpec() (*Guild, *sqlgraph.CreateSpec) {
 	if value, ok := gc.mutation.GuildID(); ok {
 		_spec.SetField(guild.FieldGuildID, field.TypeString, value)
 		_node.GuildID = value
+	}
+	if value, ok := gc.mutation.WelcomeTemplate(); ok {
+		_spec.SetField(guild.FieldWelcomeTemplate, field.TypeString, value)
+		_node.WelcomeTemplate = value
+	}
+	if value, ok := gc.mutation.WelcomeChannel(); ok {
+		_spec.SetField(guild.FieldWelcomeChannel, field.TypeString, value)
+		_node.WelcomeChannel = value
 	}
 	if nodes := gc.mutation.AutoRoleRulesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -158,6 +213,7 @@ func (gcb *GuildCreateBulk) Save(ctx context.Context) ([]*Guild, error) {
 	for i := range gcb.builders {
 		func(i int, root context.Context) {
 			builder := gcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*GuildMutation)
 				if !ok {

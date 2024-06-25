@@ -14,6 +14,8 @@ func (Guild) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name"),
 		field.String("guild_id").Unique(),
+		field.String("welcome_template").Default(""),
+		field.String("welcome_channel").Default(""),
 	}
 }
 

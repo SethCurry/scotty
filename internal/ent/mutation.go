@@ -431,6 +431,8 @@ type GuildMutation struct {
 	id                     *int
 	name                   *string
 	guild_id               *string
+	welcome_template       *string
+	welcome_channel        *string
 	clearedFields          map[string]struct{}
 	auto_role_rules        map[int]struct{}
 	removedauto_role_rules map[int]struct{}
@@ -610,6 +612,78 @@ func (m *GuildMutation) ResetGuildID() {
 	m.guild_id = nil
 }
 
+// SetWelcomeTemplate sets the "welcome_template" field.
+func (m *GuildMutation) SetWelcomeTemplate(s string) {
+	m.welcome_template = &s
+}
+
+// WelcomeTemplate returns the value of the "welcome_template" field in the mutation.
+func (m *GuildMutation) WelcomeTemplate() (r string, exists bool) {
+	v := m.welcome_template
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWelcomeTemplate returns the old "welcome_template" field's value of the Guild entity.
+// If the Guild object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GuildMutation) OldWelcomeTemplate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWelcomeTemplate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWelcomeTemplate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWelcomeTemplate: %w", err)
+	}
+	return oldValue.WelcomeTemplate, nil
+}
+
+// ResetWelcomeTemplate resets all changes to the "welcome_template" field.
+func (m *GuildMutation) ResetWelcomeTemplate() {
+	m.welcome_template = nil
+}
+
+// SetWelcomeChannel sets the "welcome_channel" field.
+func (m *GuildMutation) SetWelcomeChannel(s string) {
+	m.welcome_channel = &s
+}
+
+// WelcomeChannel returns the value of the "welcome_channel" field in the mutation.
+func (m *GuildMutation) WelcomeChannel() (r string, exists bool) {
+	v := m.welcome_channel
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWelcomeChannel returns the old "welcome_channel" field's value of the Guild entity.
+// If the Guild object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GuildMutation) OldWelcomeChannel(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWelcomeChannel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWelcomeChannel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWelcomeChannel: %w", err)
+	}
+	return oldValue.WelcomeChannel, nil
+}
+
+// ResetWelcomeChannel resets all changes to the "welcome_channel" field.
+func (m *GuildMutation) ResetWelcomeChannel() {
+	m.welcome_channel = nil
+}
+
 // AddAutoRoleRuleIDs adds the "auto_role_rules" edge to the AutoRoleRule entity by ids.
 func (m *GuildMutation) AddAutoRoleRuleIDs(ids ...int) {
 	if m.auto_role_rules == nil {
@@ -698,12 +772,18 @@ func (m *GuildMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GuildMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 4)
 	if m.name != nil {
 		fields = append(fields, guild.FieldName)
 	}
 	if m.guild_id != nil {
 		fields = append(fields, guild.FieldGuildID)
+	}
+	if m.welcome_template != nil {
+		fields = append(fields, guild.FieldWelcomeTemplate)
+	}
+	if m.welcome_channel != nil {
+		fields = append(fields, guild.FieldWelcomeChannel)
 	}
 	return fields
 }
@@ -717,6 +797,10 @@ func (m *GuildMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case guild.FieldGuildID:
 		return m.GuildID()
+	case guild.FieldWelcomeTemplate:
+		return m.WelcomeTemplate()
+	case guild.FieldWelcomeChannel:
+		return m.WelcomeChannel()
 	}
 	return nil, false
 }
@@ -730,6 +814,10 @@ func (m *GuildMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldName(ctx)
 	case guild.FieldGuildID:
 		return m.OldGuildID(ctx)
+	case guild.FieldWelcomeTemplate:
+		return m.OldWelcomeTemplate(ctx)
+	case guild.FieldWelcomeChannel:
+		return m.OldWelcomeChannel(ctx)
 	}
 	return nil, fmt.Errorf("unknown Guild field %s", name)
 }
@@ -752,6 +840,20 @@ func (m *GuildMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetGuildID(v)
+		return nil
+	case guild.FieldWelcomeTemplate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWelcomeTemplate(v)
+		return nil
+	case guild.FieldWelcomeChannel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWelcomeChannel(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Guild field %s", name)
@@ -807,6 +909,12 @@ func (m *GuildMutation) ResetField(name string) error {
 		return nil
 	case guild.FieldGuildID:
 		m.ResetGuildID()
+		return nil
+	case guild.FieldWelcomeTemplate:
+		m.ResetWelcomeTemplate()
+		return nil
+	case guild.FieldWelcomeChannel:
+		m.ResetWelcomeChannel()
 		return nil
 	}
 	return fmt.Errorf("unknown Guild field %s", name)

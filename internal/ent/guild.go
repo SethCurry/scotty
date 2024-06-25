@@ -20,6 +20,10 @@ type Guild struct {
 	Name string `json:"name,omitempty"`
 	// GuildID holds the value of the "guild_id" field.
 	GuildID string `json:"guild_id,omitempty"`
+	// WelcomeTemplate holds the value of the "welcome_template" field.
+	WelcomeTemplate string `json:"welcome_template,omitempty"`
+	// WelcomeChannel holds the value of the "welcome_channel" field.
+	WelcomeChannel string `json:"welcome_channel,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GuildQuery when eager-loading is set.
 	Edges        GuildEdges `json:"edges"`
@@ -51,7 +55,7 @@ func (*Guild) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case guild.FieldID:
 			values[i] = new(sql.NullInt64)
-		case guild.FieldName, guild.FieldGuildID:
+		case guild.FieldName, guild.FieldGuildID, guild.FieldWelcomeTemplate, guild.FieldWelcomeChannel:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -85,6 +89,18 @@ func (gu *Guild) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field guild_id", values[i])
 			} else if value.Valid {
 				gu.GuildID = value.String
+			}
+		case guild.FieldWelcomeTemplate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field welcome_template", values[i])
+			} else if value.Valid {
+				gu.WelcomeTemplate = value.String
+			}
+		case guild.FieldWelcomeChannel:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field welcome_channel", values[i])
+			} else if value.Valid {
+				gu.WelcomeChannel = value.String
 			}
 		default:
 			gu.selectValues.Set(columns[i], values[i])
@@ -132,6 +148,12 @@ func (gu *Guild) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("guild_id=")
 	builder.WriteString(gu.GuildID)
+	builder.WriteString(", ")
+	builder.WriteString("welcome_template=")
+	builder.WriteString(gu.WelcomeTemplate)
+	builder.WriteString(", ")
+	builder.WriteString("welcome_channel=")
+	builder.WriteString(gu.WelcomeChannel)
 	builder.WriteByte(')')
 	return builder.String()
 }

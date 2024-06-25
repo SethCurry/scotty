@@ -56,6 +56,34 @@ func (gu *GuildUpdate) SetNillableGuildID(s *string) *GuildUpdate {
 	return gu
 }
 
+// SetWelcomeTemplate sets the "welcome_template" field.
+func (gu *GuildUpdate) SetWelcomeTemplate(s string) *GuildUpdate {
+	gu.mutation.SetWelcomeTemplate(s)
+	return gu
+}
+
+// SetNillableWelcomeTemplate sets the "welcome_template" field if the given value is not nil.
+func (gu *GuildUpdate) SetNillableWelcomeTemplate(s *string) *GuildUpdate {
+	if s != nil {
+		gu.SetWelcomeTemplate(*s)
+	}
+	return gu
+}
+
+// SetWelcomeChannel sets the "welcome_channel" field.
+func (gu *GuildUpdate) SetWelcomeChannel(s string) *GuildUpdate {
+	gu.mutation.SetWelcomeChannel(s)
+	return gu
+}
+
+// SetNillableWelcomeChannel sets the "welcome_channel" field if the given value is not nil.
+func (gu *GuildUpdate) SetNillableWelcomeChannel(s *string) *GuildUpdate {
+	if s != nil {
+		gu.SetWelcomeChannel(*s)
+	}
+	return gu
+}
+
 // AddAutoRoleRuleIDs adds the "auto_role_rules" edge to the AutoRoleRule entity by IDs.
 func (gu *GuildUpdate) AddAutoRoleRuleIDs(ids ...int) *GuildUpdate {
 	gu.mutation.AddAutoRoleRuleIDs(ids...)
@@ -138,6 +166,12 @@ func (gu *GuildUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := gu.mutation.GuildID(); ok {
 		_spec.SetField(guild.FieldGuildID, field.TypeString, value)
+	}
+	if value, ok := gu.mutation.WelcomeTemplate(); ok {
+		_spec.SetField(guild.FieldWelcomeTemplate, field.TypeString, value)
+	}
+	if value, ok := gu.mutation.WelcomeChannel(); ok {
+		_spec.SetField(guild.FieldWelcomeChannel, field.TypeString, value)
 	}
 	if gu.mutation.AutoRoleRulesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -228,6 +262,34 @@ func (guo *GuildUpdateOne) SetGuildID(s string) *GuildUpdateOne {
 func (guo *GuildUpdateOne) SetNillableGuildID(s *string) *GuildUpdateOne {
 	if s != nil {
 		guo.SetGuildID(*s)
+	}
+	return guo
+}
+
+// SetWelcomeTemplate sets the "welcome_template" field.
+func (guo *GuildUpdateOne) SetWelcomeTemplate(s string) *GuildUpdateOne {
+	guo.mutation.SetWelcomeTemplate(s)
+	return guo
+}
+
+// SetNillableWelcomeTemplate sets the "welcome_template" field if the given value is not nil.
+func (guo *GuildUpdateOne) SetNillableWelcomeTemplate(s *string) *GuildUpdateOne {
+	if s != nil {
+		guo.SetWelcomeTemplate(*s)
+	}
+	return guo
+}
+
+// SetWelcomeChannel sets the "welcome_channel" field.
+func (guo *GuildUpdateOne) SetWelcomeChannel(s string) *GuildUpdateOne {
+	guo.mutation.SetWelcomeChannel(s)
+	return guo
+}
+
+// SetNillableWelcomeChannel sets the "welcome_channel" field if the given value is not nil.
+func (guo *GuildUpdateOne) SetNillableWelcomeChannel(s *string) *GuildUpdateOne {
+	if s != nil {
+		guo.SetWelcomeChannel(*s)
 	}
 	return guo
 }
@@ -344,6 +406,12 @@ func (guo *GuildUpdateOne) sqlSave(ctx context.Context) (_node *Guild, err error
 	}
 	if value, ok := guo.mutation.GuildID(); ok {
 		_spec.SetField(guild.FieldGuildID, field.TypeString, value)
+	}
+	if value, ok := guo.mutation.WelcomeTemplate(); ok {
+		_spec.SetField(guild.FieldWelcomeTemplate, field.TypeString, value)
+	}
+	if value, ok := guo.mutation.WelcomeChannel(); ok {
+		_spec.SetField(guild.FieldWelcomeChannel, field.TypeString, value)
 	}
 	if guo.mutation.AutoRoleRulesCleared() {
 		edge := &sqlgraph.EdgeSpec{

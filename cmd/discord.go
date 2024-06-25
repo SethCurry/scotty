@@ -78,6 +78,7 @@ func (s StartBot) Run(ctx *Context) error {
 	bot.RegisterCommand("scotty", discord.ScottyCommand(elClient, ctx.Config.TTS.ScottyVoiceID))
 	bot.RegisterCommand("leaderboard", discord.LeaderboardCommand)
 	bot.OnUserJoinGuild(scotty.AutoRoleOnUserJoin)
+	bot.OnUserJoinGuild(scotty.WelcomeOnUserJoin)
 
 	ctx.Logger.Info("waiting for context to be cancelled")
 

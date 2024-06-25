@@ -63,6 +63,16 @@ func GuildID(v string) predicate.Guild {
 	return predicate.Guild(sql.FieldEQ(FieldGuildID, v))
 }
 
+// WelcomeTemplate applies equality check predicate on the "welcome_template" field. It's identical to WelcomeTemplateEQ.
+func WelcomeTemplate(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldEQ(FieldWelcomeTemplate, v))
+}
+
+// WelcomeChannel applies equality check predicate on the "welcome_channel" field. It's identical to WelcomeChannelEQ.
+func WelcomeChannel(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldEQ(FieldWelcomeChannel, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Guild {
 	return predicate.Guild(sql.FieldEQ(FieldName, v))
@@ -191,6 +201,136 @@ func GuildIDEqualFold(v string) predicate.Guild {
 // GuildIDContainsFold applies the ContainsFold predicate on the "guild_id" field.
 func GuildIDContainsFold(v string) predicate.Guild {
 	return predicate.Guild(sql.FieldContainsFold(FieldGuildID, v))
+}
+
+// WelcomeTemplateEQ applies the EQ predicate on the "welcome_template" field.
+func WelcomeTemplateEQ(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldEQ(FieldWelcomeTemplate, v))
+}
+
+// WelcomeTemplateNEQ applies the NEQ predicate on the "welcome_template" field.
+func WelcomeTemplateNEQ(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldNEQ(FieldWelcomeTemplate, v))
+}
+
+// WelcomeTemplateIn applies the In predicate on the "welcome_template" field.
+func WelcomeTemplateIn(vs ...string) predicate.Guild {
+	return predicate.Guild(sql.FieldIn(FieldWelcomeTemplate, vs...))
+}
+
+// WelcomeTemplateNotIn applies the NotIn predicate on the "welcome_template" field.
+func WelcomeTemplateNotIn(vs ...string) predicate.Guild {
+	return predicate.Guild(sql.FieldNotIn(FieldWelcomeTemplate, vs...))
+}
+
+// WelcomeTemplateGT applies the GT predicate on the "welcome_template" field.
+func WelcomeTemplateGT(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldGT(FieldWelcomeTemplate, v))
+}
+
+// WelcomeTemplateGTE applies the GTE predicate on the "welcome_template" field.
+func WelcomeTemplateGTE(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldGTE(FieldWelcomeTemplate, v))
+}
+
+// WelcomeTemplateLT applies the LT predicate on the "welcome_template" field.
+func WelcomeTemplateLT(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldLT(FieldWelcomeTemplate, v))
+}
+
+// WelcomeTemplateLTE applies the LTE predicate on the "welcome_template" field.
+func WelcomeTemplateLTE(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldLTE(FieldWelcomeTemplate, v))
+}
+
+// WelcomeTemplateContains applies the Contains predicate on the "welcome_template" field.
+func WelcomeTemplateContains(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldContains(FieldWelcomeTemplate, v))
+}
+
+// WelcomeTemplateHasPrefix applies the HasPrefix predicate on the "welcome_template" field.
+func WelcomeTemplateHasPrefix(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldHasPrefix(FieldWelcomeTemplate, v))
+}
+
+// WelcomeTemplateHasSuffix applies the HasSuffix predicate on the "welcome_template" field.
+func WelcomeTemplateHasSuffix(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldHasSuffix(FieldWelcomeTemplate, v))
+}
+
+// WelcomeTemplateEqualFold applies the EqualFold predicate on the "welcome_template" field.
+func WelcomeTemplateEqualFold(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldEqualFold(FieldWelcomeTemplate, v))
+}
+
+// WelcomeTemplateContainsFold applies the ContainsFold predicate on the "welcome_template" field.
+func WelcomeTemplateContainsFold(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldContainsFold(FieldWelcomeTemplate, v))
+}
+
+// WelcomeChannelEQ applies the EQ predicate on the "welcome_channel" field.
+func WelcomeChannelEQ(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldEQ(FieldWelcomeChannel, v))
+}
+
+// WelcomeChannelNEQ applies the NEQ predicate on the "welcome_channel" field.
+func WelcomeChannelNEQ(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldNEQ(FieldWelcomeChannel, v))
+}
+
+// WelcomeChannelIn applies the In predicate on the "welcome_channel" field.
+func WelcomeChannelIn(vs ...string) predicate.Guild {
+	return predicate.Guild(sql.FieldIn(FieldWelcomeChannel, vs...))
+}
+
+// WelcomeChannelNotIn applies the NotIn predicate on the "welcome_channel" field.
+func WelcomeChannelNotIn(vs ...string) predicate.Guild {
+	return predicate.Guild(sql.FieldNotIn(FieldWelcomeChannel, vs...))
+}
+
+// WelcomeChannelGT applies the GT predicate on the "welcome_channel" field.
+func WelcomeChannelGT(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldGT(FieldWelcomeChannel, v))
+}
+
+// WelcomeChannelGTE applies the GTE predicate on the "welcome_channel" field.
+func WelcomeChannelGTE(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldGTE(FieldWelcomeChannel, v))
+}
+
+// WelcomeChannelLT applies the LT predicate on the "welcome_channel" field.
+func WelcomeChannelLT(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldLT(FieldWelcomeChannel, v))
+}
+
+// WelcomeChannelLTE applies the LTE predicate on the "welcome_channel" field.
+func WelcomeChannelLTE(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldLTE(FieldWelcomeChannel, v))
+}
+
+// WelcomeChannelContains applies the Contains predicate on the "welcome_channel" field.
+func WelcomeChannelContains(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldContains(FieldWelcomeChannel, v))
+}
+
+// WelcomeChannelHasPrefix applies the HasPrefix predicate on the "welcome_channel" field.
+func WelcomeChannelHasPrefix(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldHasPrefix(FieldWelcomeChannel, v))
+}
+
+// WelcomeChannelHasSuffix applies the HasSuffix predicate on the "welcome_channel" field.
+func WelcomeChannelHasSuffix(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldHasSuffix(FieldWelcomeChannel, v))
+}
+
+// WelcomeChannelEqualFold applies the EqualFold predicate on the "welcome_channel" field.
+func WelcomeChannelEqualFold(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldEqualFold(FieldWelcomeChannel, v))
+}
+
+// WelcomeChannelContainsFold applies the ContainsFold predicate on the "welcome_channel" field.
+func WelcomeChannelContainsFold(v string) predicate.Guild {
+	return predicate.Guild(sql.FieldContainsFold(FieldWelcomeChannel, v))
 }
 
 // HasAutoRoleRules applies the HasEdge predicate on the "auto_role_rules" edge.

@@ -33,6 +33,8 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "guild_id", Type: field.TypeString, Unique: true},
+		{Name: "welcome_template", Type: field.TypeString, Default: ""},
+		{Name: "welcome_channel", Type: field.TypeString, Default: ""},
 	}
 	// GuildsTable holds the schema information for the "guilds" table.
 	GuildsTable = &schema.Table{
